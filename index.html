@@ -1498,17 +1498,18 @@ function drawCert(name){
   x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   x.strokeStyle = GOLD; x.lineWidth = 2.5; x.beginPath(); x.moveTo(W / 2 - 260, 286); x.lineTo(W / 2 - 160, 286); x.moveTo(W / 2 + 160, 286); x.lineTo(W / 2 + 260, 286); x.stroke();
   x.fillStyle = TEAL; x.font = `800 34px ${F}`; x.fillText('품사 마을 탐험대', W / 2, 298);
-  x.fillStyle = INK; x.font = `900 96px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 400);
-  [-1, 0, 1].forEach((d, i) => { starPath(W / 2 + d * 62, 452, 26); x.fillStyle = i < r.stars ? '#e3a83a' : '#e6ddc8'; x.fill(); });
-  x.fillStyle = INK; x.font = `800 58px ${F}`; x.fillText(name, W / 2, 544);
+  x.fillStyle = INK; x.font = `900 84px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 390);
+  const U = 24;   // 제목을 줄인 만큼 아래 내용을 모두 위로 올려 맨 아래 탐험대장 밑에 여백을 둠
+  [-1, 0, 1].forEach((d, i) => { starPath(W / 2 + d * 62, 458 - U, 26); x.fillStyle = i < r.stars ? '#e3a83a' : '#e6ddc8'; x.fill(); });
+  x.fillStyle = INK; x.font = `800 58px ${F}`; x.fillText(name, W / 2, 544 - U);
   const nw = Math.max(220, x.measureText(name).width + 70);
-  x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.moveTo(W / 2 - nw / 2, 566); x.lineTo(W / 2 + nw / 2, 566); x.stroke();
+  x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.moveTo(W / 2 - nw / 2, 566 - U); x.lineTo(W / 2 + nw / 2, 566 - U); x.stroke();
   x.fillStyle = '#2f3a36'; x.font = `500 36px ${F}`;
   const body = "위 사람은 이야기 속에 숨겨진 품사를 완벽히 탐색하여 '품사 마을 지도'를 완성하였으므로 '우수 품사 탐험가'로 인정합니다.";
-  wrapLines(x, body, 1140).forEach((ln, i) => x.fillText(ln, W / 2, 642 + i * 52));
+  wrapLines(x, body, 1140).forEach((ln, i) => x.fillText(ln, W / 2, 642 - U + i * 52));
 
   // 6) 탐험 정보 줄 (양쪽 월계수)
-  const iy = 764;
+  const iy = 764 - U;
   roundRectPath(x, 220, iy - 38, W - 440, 76, 38); x.fillStyle = '#e7f0e8'; x.fill(); x.strokeStyle = '#cfe0d2'; x.lineWidth = 2; x.stroke();
   [[258, 1], [W - 258, -1]].forEach(([lx, s]) => { x.save(); x.translate(lx, iy); x.scale(s, 1); x.strokeStyle = '#3f8a6a'; x.fillStyle = '#5aa57d'; x.lineWidth = 2.5;
     x.beginPath(); x.moveTo(8, 22); x.quadraticCurveTo(-8, 0, 6, -24); x.stroke();
@@ -1519,7 +1520,7 @@ function drawCert(name){
 
   // 7) 품사 육각 배지
   const counts = {}; r.tokens.forEach(t => counts[t.p] = (counts[t.p] || 0) + 1);
-  const act = activePOS(), many = act.length > 5, gap = many ? 128 : 168, R = many ? 48 : 60, by = 900;
+  const act = activePOS(), many = act.length > 5, gap = many ? 128 : 168, R = many ? 48 : 60, by = 900 - U;
   act.forEach((p, i) => {
     const bx = W / 2 + (i - (act.length - 1) / 2) * gap, on = counts[p.k] > 0;
     const top = on ? p.bg : '#e2dccf', bot = on ? p.dk : '#bdb5a5';
@@ -1535,11 +1536,12 @@ function drawCert(name){
 
   // 8) 날짜·탐험대장·도장
   x.textBaseline = 'alphabetic'; x.textAlign = 'center';
-  x.strokeStyle = GOLD; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 260, 1036); x.lineTo(W / 2 - 150, 1036); x.moveTo(W / 2 + 150, 1036); x.lineTo(W / 2 + 260, 1036); x.stroke();
+  const dy = 1036 - U;
+  x.strokeStyle = GOLD; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 260, dy); x.lineTo(W / 2 - 150, dy); x.moveTo(W / 2 + 150, dy); x.lineTo(W / 2 + 260, dy); x.stroke();
   x.fillStyle = '#2f3a36'; x.font = `500 30px ${F}`;
-  x.fillText(new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'}), W / 2, 1046);
-  x.fillStyle = INK; x.font = `800 40px ${F}`; x.fillText('품사 마을 탐험대장', W / 2 - 30, 1106);
-  const sx = W / 2 + 190, sy = 1092;
+  x.fillText(new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'}), W / 2, dy + 10);
+  x.fillStyle = INK; x.font = `800 40px ${F}`; x.fillText('품사 마을 탐험대장', W / 2 - 30, dy + 70);
+  const sx = W / 2 + 190, sy = dy + 56;
   x.strokeStyle = '#d2453a'; x.lineWidth = 4; x.beginPath(); x.arc(sx, sy, 48, 0, Math.PI * 2); x.stroke();
   x.lineWidth = 2; x.beginPath(); x.arc(sx, sy, 41, 0, Math.PI * 2); x.stroke();
   x.fillStyle = '#d2453a'; x.font = `800 20px ${F}`; x.textBaseline = 'middle'; x.fillText('품사', sx, sy - 16); x.fillText('마을', sx, sy + 6);
