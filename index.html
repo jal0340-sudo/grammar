@@ -1412,44 +1412,162 @@ const MEDAL_SVG = `<svg class="medal" viewBox="0 0 80 80" aria-hidden="true"><pa
   <circle cx="40" cy="40" r="22" fill="#fff8e6" stroke="#d9a441" stroke-width="3"/><path d="M40 24 L45 40 H35Z" fill="#e45b4b"/><path d="M35 40 H45 L40 56Z" fill="#3d6f8e"/><circle cx="40" cy="40" r="3" fill="#fff" stroke="#b58a3a" stroke-width="1.5"/></svg>`;
 
 /* ---------- 인증서 (canvas → 그림 파일, 외부 라이브러리 없음) ---------- */
+// 인증서 배지 안에 그릴 흰색 품사 아이콘 (24×24 기준 Path2D)
+const CERT_ICON = {
+  '명사':  {d:'M12 4a4 4 0 1 0 .01 0Z M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7Z', fill:true},
+  '대명사':{d:'M9 4.5a3.5 3.5 0 1 0 .01 0Z M2.5 20c0-3.8 2.9-6 6.5-6s6.5 2.2 6.5 6 M16 4.6a3.5 3.5 0 0 1 0 6.8 M18 14.3c2.2.7 3.5 2.6 3.5 5.7'},
+  '수사':  {text:'123'},
+  '동사':  {d:'M14.5 2a2 2 0 1 0 .01 0Z M8 21l3-6.5 3 2.5v5 M6 11l3.5-3 4 1 2.5 3.5 3 .5 M11 14.5l1.5-6'},
+  '형용사':{d:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z', fill:true},
+  '관형사':{d:'M5 19C5 11 10 5 20 5c0 10-6 15-14 15 M5 19l8-8'},
+  '부사':  {d:'M12 3a9 9 0 1 0 .01 0Z M12 7v5l3 2'},
+  '조사':  {d:'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7 M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7'},
+  '감탄사':{d:'M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8'}
+};
 function drawCert(name){
-  const r = exp.summary, W = 1600, H = 1130, F = '"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif';
+  const r = exp.summary, W = 1600, H = 1220, F = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif';
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d');
-  const grd = x.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 900);
-  grd.addColorStop(0, '#fffaf0'); grd.addColorStop(1, '#f6e4bf');
-  x.fillStyle = grd; x.fillRect(0, 0, W, H);
-  x.strokeStyle = '#8a6a3e'; x.lineWidth = 14; x.strokeRect(40, 40, W - 80, H - 80);
-  x.strokeStyle = '#c9a46a'; x.lineWidth = 3; x.strokeRect(72, 72, W - 144, H - 144);
+  const GOLD = '#e0b04a', CREAM = '#f4eedb', TEAL = '#2f7a62', INK = '#1d3a33';
+  const hexPath = (cx, cy, R) => { x.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 180 * (60 * i - 90); x[i ? 'lineTo' : 'moveTo'](cx + R * Math.cos(a), cy + R * Math.sin(a)); } x.closePath(); };
+  const starPath = (cx, cy, R) => { x.beginPath(); for (let i = 0; i < 10; i++) { const a = Math.PI / 5 * i - Math.PI / 2, rr = i % 2 ? R * .45 : R; x[i ? 'lineTo' : 'moveTo'](cx + rr * Math.cos(a), cy + rr * Math.sin(a)); } x.closePath(); };
+  const sparkle = (cx, cy, s, col) => { x.beginPath(); x.moveTo(cx, cy - s); x.quadraticCurveTo(cx, cy, cx + s, cy); x.quadraticCurveTo(cx, cy, cx, cy + s); x.quadraticCurveTo(cx, cy, cx - s, cy); x.quadraticCurveTo(cx, cy, cx, cy - s); x.fillStyle = col; x.fill(); };
+  const contours = (col, n, x0, y0, w, h) => { x.strokeStyle = col; x.lineWidth = 2;
+    for (let i = 0; i < n; i++) { const y = y0 + (i + .5) * h / n; x.beginPath(); x.moveTo(x0 - 40, y);
+      x.bezierCurveTo(x0 + w * .3, y + 70 * Math.sin(i * 1.7), x0 + w * .65, y - 80 * Math.cos(i * 1.1), x0 + w + 40, y + 50 * Math.sin(i * 2.3)); x.stroke(); } };
+  const ribbon = (cx, cy, w, h, col, dark, t = 26) => {   // 양 끝이 V자로 파인 띠 (t: 꼬리 길이)
+    x.fillStyle = dark;
+    [[-1], [1]].forEach(([s]) => { x.beginPath(); const ex = cx + s * w / 2, ix = ex - s * (t + 8), dy = Math.min(8, h * .2);
+      x.moveTo(ix, cy - h / 2 + dy); x.lineTo(ex + s * t, cy - h / 2 + dy); x.lineTo(ex + s * t * .45, cy + dy / 2); x.lineTo(ex + s * t, cy + h / 2 + dy); x.lineTo(ix, cy + h / 2 + dy); x.closePath(); x.fill(); });
+    roundRectPath(x, cx - w / 2, cy - h / 2, w, h, 8); x.fillStyle = col; x.fill();
+  };
+  const alpha = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
+  const icon = (k, cx, cy, s) => {
+    const ic = CERT_ICON[k];
+    if (ic.text) { x.fillStyle = '#fff'; x.font = `900 ${Math.round(s * .42)}px ${F}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(ic.text, cx, cy + 1); return; }
+    x.save(); x.translate(cx - s / 2, cy - s / 2); x.scale(s / 24, s / 24);
+    const p = new Path2D(ic.d); x.strokeStyle = '#fff'; x.fillStyle = '#fff'; x.lineWidth = 2.2; x.lineCap = 'round'; x.lineJoin = 'round';
+    if (ic.fill) x.fill(p); else x.stroke(p);
+    x.restore();
+  };
+
+  // 1) 짙은 초록 지도 배경 + 등고선
+  const bg = x.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1f4c41'); bg.addColorStop(1, '#14372e');
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  contours('rgba(255,255,255,.05)', 18, 0, 0, W, H);
+
+  // 2) 왼쪽 위 로고, 오른쪽 위 손글씨, 나침반 별, 반짝이
+  x.strokeStyle = GOLD; x.lineWidth = 4; x.lineJoin = 'round';
+  x.beginPath(); x.moveTo(78, 66); x.lineTo(78, 112); x.quadraticCurveTo(96, 104, 112, 114); x.lineTo(112, 70); x.quadraticCurveTo(96, 58, 78, 66); x.stroke();
+  x.beginPath(); x.moveTo(146, 66); x.lineTo(146, 112); x.quadraticCurveTo(128, 104, 112, 114); x.lineTo(112, 70); x.quadraticCurveTo(128, 58, 146, 66); x.stroke();
+  x.beginPath(); x.moveTo(96, 100); x.quadraticCurveTo(94, 82, 104, 74); x.stroke();
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  x.fillStyle = CREAM; x.font = `bold 32px ${F}`; x.fillText('품사 마을 탐험대', 166, 88);
+  x.fillStyle = 'rgba(244,238,219,.8)'; x.font = `22px ${F}`; x.fillText('언어의 지도를 완성하는 우리', 166, 120);
+  x.save(); x.translate(1250, 70); x.rotate(-.08); x.fillStyle = CREAM; x.font = `italic 30px ${F}`;
+  ['오늘도', '더 넓은 언어의 세상을', '  탐험해요!'].forEach((t, i) => x.fillText(t, i * 14, i * 40)); x.restore();
+  x.save(); x.setLineDash([10, 12]); x.strokeStyle = 'rgba(244,238,219,.7)'; x.lineWidth = 3;
+  x.beginPath(); x.moveTo(1500, 150); x.bezierCurveTo(1580, 200, 1560, 330, 1470, 400); x.stroke(); x.restore();
+  x.strokeStyle = CREAM; x.lineWidth = 6; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(1482, 118); x.lineTo(1508, 144); x.moveTo(1508, 118); x.lineTo(1482, 144); x.stroke();
+  x.save(); x.translate(66, 430); x.globalAlpha = .55; x.strokeStyle = GOLD; x.lineWidth = 2;
+  x.beginPath(); x.arc(0, 0, 34, 0, Math.PI * 2); x.stroke(); sparkle(0, 0, 62, GOLD); x.restore();
+  [[1090, 64, 12], [1500, 660, 16], [52, 780, 13], [250, 1170, 10]].forEach(([sx, sy, s]) => sparkle(sx, sy, s, GOLD));
+
+  // 3) 크림색 인증서 카드 (+ 은은한 등고선)
+  const CX = 130, CY = 150, CW = W - 260, CH = H - 240;
+  x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 30; x.shadowOffsetY = 10;
+  roundRectPath(x, CX, CY, CW, CH, 40); x.fillStyle = '#fbf8ef'; x.fill(); x.restore();
+  x.save(); roundRectPath(x, CX, CY, CW, CH, 40); x.clip(); contours('rgba(47,122,98,.06)', 12, CX, CY, CW, CH); x.restore();
+
+  // 4) 맨 위 육각 지도 배지와 금색 리본
+  ribbon(W / 2, CY + 10, 360, 54, GOLD, '#b98a2e');
+  hexPath(W / 2, CY - 2, 104); x.fillStyle = GOLD; x.fill();
+  const hg = x.createLinearGradient(0, CY - 90, 0, CY + 90); hg.addColorStop(0, '#2f7d66'); hg.addColorStop(1, '#1d5747');
+  hexPath(W / 2, CY - 2, 90); x.fillStyle = hg; x.fill();
+  x.save(); x.translate(W / 2 - 40, CY - 34);
+  x.beginPath(); x.moveTo(0, 8); x.lineTo(26, 0); x.lineTo(54, 8); x.lineTo(80, 0); x.lineTo(80, 52); x.lineTo(54, 60); x.lineTo(26, 52); x.lineTo(0, 60); x.closePath();
+  x.fillStyle = '#9fd8b8'; x.fill(); x.strokeStyle = '#e8f6ee'; x.lineWidth = 3; x.stroke();
+  x.beginPath(); x.moveTo(26, 0); x.lineTo(26, 52); x.moveTo(54, 8); x.lineTo(54, 60); x.stroke();
+  x.beginPath(); x.arc(40, -6, 14, Math.PI, 0); x.lineTo(40, 20); x.closePath(); x.fillStyle = GOLD; x.fill();
+  x.beginPath(); x.arc(40, -6, 5.5, 0, Math.PI * 2); x.fillStyle = '#1d5747'; x.fill();
+  x.restore();
+  sparkle(W / 2, CY + 52, 12, GOLD);
+
+  // 5) 제목·별·이름·본문
   x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-  x.fillStyle = '#8a4b0c'; x.font = `bold 32px ${F}`; x.fillText('🧭 품사 마을 탐험대', W / 2, 160);
-  x.fillStyle = '#3b2a1a'; x.font = `bold 88px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 265);
-  x.fillStyle = '#e0a526'; x.font = `56px ${F}`;
-  x.fillText('★'.repeat(r.stars) + '☆'.repeat(3 - r.stars), W / 2, 335);
-  x.fillStyle = '#3b2a1a'; x.font = `bold 64px ${F}`; x.fillText(name, W / 2, 440);
-  const nw = Math.max(260, x.measureText(name).width + 80);
-  x.strokeStyle = '#3b2a1a'; x.lineWidth = 3; x.beginPath(); x.moveTo(W / 2 - nw / 2, 465); x.lineTo(W / 2 + nw / 2, 465); x.stroke();
-  x.font = `38px ${F}`; x.fillStyle = '#4a3520';
+  x.strokeStyle = GOLD; x.lineWidth = 2.5; x.beginPath(); x.moveTo(W / 2 - 260, 286); x.lineTo(W / 2 - 160, 286); x.moveTo(W / 2 + 160, 286); x.lineTo(W / 2 + 260, 286); x.stroke();
+  x.fillStyle = TEAL; x.font = `800 34px ${F}`; x.fillText('품사 마을 탐험대', W / 2, 298);
+  x.fillStyle = INK; x.font = `900 96px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 400);
+  [-1, 0, 1].forEach((d, i) => { starPath(W / 2 + d * 62, 452, 26); x.fillStyle = i < r.stars ? '#e3a83a' : '#e6ddc8'; x.fill(); });
+  x.fillStyle = INK; x.font = `900 72px ${F}`; x.fillText(name, W / 2, 552);
+  const nw = Math.max(240, x.measureText(name).width + 70);
+  x.strokeStyle = GOLD; x.lineWidth = 5; x.beginPath(); x.moveTo(W / 2 - nw / 2, 578); x.lineTo(W / 2 + nw / 2, 578); x.stroke();
+  x.fillStyle = '#2f3a36'; x.font = `500 36px ${F}`;
   const body = "위 사람은 이야기 속에 숨겨진 품사를 완벽히 탐색하여 '품사 마을 지도'를 완성하였으므로 '우수 품사 탐험가'로 인정합니다.";
-  wrapLines(x, body, 1180).forEach((ln, i) => x.fillText(ln, W / 2, 550 + i * 62));
-  x.font = `30px ${F}`; x.fillStyle = '#8a6f52';
-  x.fillText(`난이도 「${exp.name}」  ·  ${r.steps}단계 완주  ·  첫 검사 정확도 ${r.acc}%  ·  모은 단어 ${r.total}개`, W / 2, 730);
+  wrapLines(x, body, 1140).forEach((ln, i) => x.fillText(ln, W / 2, 642 + i * 52));
+
+  // 6) 탐험 정보 줄 (양쪽 월계수)
+  const iy = 764;
+  roundRectPath(x, 220, iy - 38, W - 440, 76, 38); x.fillStyle = '#e7f0e8'; x.fill(); x.strokeStyle = '#cfe0d2'; x.lineWidth = 2; x.stroke();
+  [[258, 1], [W - 258, -1]].forEach(([lx, s]) => { x.save(); x.translate(lx, iy); x.scale(s, 1); x.strokeStyle = '#3f8a6a'; x.fillStyle = '#5aa57d'; x.lineWidth = 2.5;
+    x.beginPath(); x.moveTo(8, 22); x.quadraticCurveTo(-8, 0, 6, -24); x.stroke();
+    [[-2, 12], [-6, 0], [-3, -12]].forEach(([dx, dy]) => { x.beginPath(); x.ellipse(dx, dy, 9, 4.5, -0.8, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(dx + 12, dy - 3, 9, 4.5, 0.6, 0, Math.PI * 2); x.fill(); });
+    x.restore(); });
+  x.fillStyle = '#34463f'; x.font = `600 27px ${F}`; x.textBaseline = 'middle';
+  x.fillText(`난이도 「${exp.name}」 · ${r.steps}단계 완주 · 첫 검사 정확도 ${r.acc}% · 모은 단어 ${r.total}개`, W / 2, iy + 1);
+
+  // 7) 품사 육각 배지
   const counts = {}; r.tokens.forEach(t => counts[t.p] = (counts[t.p] || 0) + 1);
-  x.textBaseline = 'middle';
-  const act = activePOS();
+  const act = activePOS(), many = act.length > 5, gap = many ? 128 : 168, R = many ? 48 : 60, by = 900;
   act.forEach((p, i) => {
-    const cx = W / 2 + (i - (act.length - 1) / 2) * 110, cy = 822, on = counts[p.k] > 0;
-    x.beginPath(); x.arc(cx, cy, 44, 0, Math.PI * 2);
-    x.fillStyle = on ? p.dk : '#d8ccb4'; x.fill();
-    x.fillStyle = '#fff'; x.font = `bold ${p.k.length > 2 ? 21 : 24}px ${F}`; x.fillText(p.k, cx, cy + 1);
+    const bx = W / 2 + (i - (act.length - 1) / 2) * gap, on = counts[p.k] > 0;
+    const top = on ? p.bg : '#e2dccf', bot = on ? p.dk : '#bdb5a5';
+    hexPath(bx, by, R + 6); x.fillStyle = on ? 'rgba(255,255,255,.9)' : '#eee9de'; x.fill(); x.strokeStyle = bot; x.lineWidth = 3; x.stroke();
+    const g = x.createLinearGradient(0, by - R, 0, by + R); g.addColorStop(0, top); g.addColorStop(1, bot);
+    hexPath(bx, by, R); x.fillStyle = g; x.fill();
+    icon(p.k, bx, by - R * .12, R * .78);
+    const rw = R * 2.1, rh = many ? 36 : 42;
+    ribbon(bx, by + R * .82, rw, rh, bot, alpha(bot, .55), many ? 10 : 14);
+    x.fillStyle = '#fff'; x.font = `800 ${many ? 22 : 26}px ${F}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(p.k, bx, by + R * .82 + 1);
   });
-  x.textBaseline = 'alphabetic';
-  x.fillStyle = '#4a3520'; x.font = `32px ${F}`;
-  x.fillText(new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'}), W / 2, 945);
-  x.font = `bold 36px ${F}`; x.fillText('품사 마을 탐험대장', W / 2, 1008);
-  x.strokeStyle = '#c2411c'; x.lineWidth = 5; x.beginPath(); x.arc(W / 2 + 210, 996, 40, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#c2411c'; x.font = `bold 22px ${F}`; x.textBaseline = 'middle';
-  x.fillText('품사', W / 2 + 210, 984); x.fillText('마을', W / 2 + 210, 1010);
+
+  // 8) 날짜·탐험대장·도장
+  x.textBaseline = 'alphabetic'; x.textAlign = 'center';
+  x.strokeStyle = GOLD; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 260, 1036); x.lineTo(W / 2 - 150, 1036); x.moveTo(W / 2 + 150, 1036); x.lineTo(W / 2 + 260, 1036); x.stroke();
+  x.fillStyle = '#2f3a36'; x.font = `500 30px ${F}`;
+  x.fillText(new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'}), W / 2, 1046);
+  x.fillStyle = INK; x.font = `800 40px ${F}`; x.fillText('품사 마을 탐험대장', W / 2 - 30, 1106);
+  const sx = W / 2 + 190, sy = 1092;
+  x.strokeStyle = '#d2453a'; x.lineWidth = 4; x.beginPath(); x.arc(sx, sy, 48, 0, Math.PI * 2); x.stroke();
+  x.lineWidth = 2; x.beginPath(); x.arc(sx, sy, 41, 0, Math.PI * 2); x.stroke();
+  x.fillStyle = '#d2453a'; x.font = `800 20px ${F}`; x.textBaseline = 'middle'; x.fillText('품사', sx, sy - 16); x.fillText('마을', sx, sy + 6);
+  x.beginPath(); x.moveTo(sx - 16, sy + 30); x.lineTo(sx - 6, sy + 18); x.lineTo(sx + 2, sy + 26); x.lineTo(sx + 9, sy + 17); x.lineTo(sx + 18, sy + 30); x.stroke();
+
+  // 9) 카드 밖 장식: 왼쪽 아래 산과 깃발, 오른쪽 아래 지도와 나침반
+  x.fillStyle = '#5d8f78'; x.beginPath(); x.moveTo(0, 1030); x.lineTo(110, 900); x.lineTo(220, 1030); x.closePath(); x.fill();
+  x.fillStyle = '#f2ede0'; x.beginPath(); x.moveTo(110, 900); x.lineTo(80, 936); x.lineTo(95, 932); x.lineTo(110, 944); x.lineTo(125, 932); x.lineTo(140, 936); x.closePath(); x.fill();
+  x.strokeStyle = '#f2ede0'; x.lineWidth = 3; x.beginPath(); x.moveTo(110, 900); x.lineTo(110, 852); x.stroke();
+  x.fillStyle = '#f08a3c'; x.beginPath(); x.moveTo(110, 852); x.lineTo(146, 864); x.lineTo(110, 876); x.closePath(); x.fill();
+  [['#3f8a6a', 'M0 980 C110 930 230 960 330 1030 S500 1160 600 1220 L0 1220Z'], ['#2f6e57', 'M0 1060 C140 1010 260 1060 360 1120 S460 1200 520 1220 L0 1220Z'],
+   ['#5aa57d', 'M120 1220 C200 1150 320 1150 430 1220Z']].forEach(([col, d]) => { x.fillStyle = col; x.fill(new Path2D(d)); });
+  [[250, 1010, 34], [300, 1040, 28], [60, 1040, 30]].forEach(([tx, ty, s]) => { x.fillStyle = '#245a47'; x.beginPath(); x.moveTo(tx, ty - s * 2); x.lineTo(tx + s * .7, ty); x.lineTo(tx - s * .7, ty); x.closePath(); x.fill(); });
+  x.save(); x.translate(1330, 1070); x.rotate(-.12);
+  x.beginPath(); x.moveTo(0, 0); x.lineTo(90, -20); x.lineTo(180, 0); x.lineTo(270, -20); x.lineTo(280, 120); x.lineTo(190, 140); x.lineTo(100, 120); x.lineTo(10, 140); x.closePath();
+  x.fillStyle = '#efe6cc'; x.fill(); x.strokeStyle = '#d7c9a3'; x.lineWidth = 3; x.stroke();
+  x.fillStyle = '#b9d9b0'; x.beginPath(); x.ellipse(70, 60, 40, 22, .3, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(200, 70, 46, 26, -.2, 0, Math.PI * 2); x.fill();
+  x.restore();
+  const kx = 1440, ky = 1010;
+  x.fillStyle = GOLD; x.beginPath(); x.arc(kx, ky - 98, 12, 0, Math.PI * 2); x.fill();
+  x.beginPath(); x.arc(kx, ky, 92, 0, Math.PI * 2); x.fillStyle = GOLD; x.fill();
+  x.beginPath(); x.arc(kx, ky, 76, 0, Math.PI * 2); x.fillStyle = '#1f4c41'; x.fill();
+  x.strokeStyle = 'rgba(224,176,74,.7)'; x.lineWidth = 2;
+  for (let i = 0; i < 16; i++) { const a = Math.PI / 8 * i, l = i % 4 ? 8 : 16; x.beginPath(); x.moveTo(kx + 70 * Math.cos(a), ky + 70 * Math.sin(a)); x.lineTo(kx + (70 - l) * Math.cos(a), ky + (70 - l) * Math.sin(a)); x.stroke(); }
+  x.save(); x.translate(kx, ky); x.rotate(.7);
+  x.fillStyle = '#e8574a'; x.beginPath(); x.moveTo(0, -58); x.lineTo(12, 0); x.lineTo(-12, 0); x.closePath(); x.fill();
+  x.fillStyle = '#f4eedb'; x.beginPath(); x.moveTo(0, 58); x.lineTo(12, 0); x.lineTo(-12, 0); x.closePath(); x.fill();
+  x.restore(); x.beginPath(); x.arc(kx, ky, 7, 0, Math.PI * 2); x.fillStyle = GOLD; x.fill();
   return c.toDataURL('image/png');
 }
 /* ---------- 품사 요약 정리표 그림 (canvas → 그림 파일) ---------- */
