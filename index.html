@@ -77,7 +77,7 @@ input,textarea,select{font:inherit;color:var(--ink);background:#fffdf7;border:2p
 input:focus,textarea:focus,select:focus{border-color:#ea8f2e;outline:none}
 
 /* ---------- 첫 화면: 난이도 선택 ---------- */
-#screen-home.active{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;min-height:100vh;min-height:100dvh;padding:24px 16px;text-align:center}
+#screen-home.active{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:100vh;min-height:100dvh;padding:16px;text-align:center}
 #screen-home .sign{animation:signIn .8s var(--pop) backwards}
 #screen-home .sign .l1{font-size:clamp(1.8rem,6vw,3.1rem);line-height:1.2}
 #screen-home .sign .l2{font-size:clamp(1.4rem,4.4vw,2.4rem);line-height:1.25}
@@ -98,6 +98,18 @@ input:focus,textarea:focus,select:focus{border-color:#ea8f2e;outline:none}
 .lv-stars{color:#e9a91f;text-shadow:0 2px 0 #9a6a0c;letter-spacing:2px}
 .lv-desc{font-size:.88rem;color:var(--muted);font-weight:700;line-height:1.35}
 .home-rule{font-weight:700;color:var(--brown);background:rgba(255,250,238,.85);border:2px dashed var(--edge);border-radius:14px;padding:8px 16px;margin:0}
+.learn-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:600px}
+.learn-or{margin:0;font-size:.9rem;font-weight:800;color:var(--muted)}
+.level.learn{flex-direction:row;justify-content:center;gap:14px;width:100%;max-width:600px;padding:10px 18px;border-style:dashed;border-color:#7fc8a9;
+  background:linear-gradient(135deg,#eafaf2,#e6f3ff);box-shadow:0 6px 0 #9fd3bd}
+.level.learn .lv-ic{font-size:2.2rem}
+.level.learn[aria-checked="true"]{transform:scale(1.02);border-style:solid;border-color:#2fa37a;background:linear-gradient(135deg,#d9f6e8,#d8ecff);box-shadow:0 0 0 5px rgba(47,163,122,.3),0 8px 0 #2f8d6b}
+.level.learn[aria-checked="true"]::after{background:linear-gradient(#5fd3a0,#2fa37a)}
+.learn-body{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left}
+.learn-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.learn-desc{font-size:.9rem;font-weight:700;color:var(--muted)}
+.learn-chips{display:flex;flex-wrap:wrap;gap:4px}
+.learn-chips i{font-style:normal;font-size:.78rem;font-weight:800;color:#3b2a1a;border:2px solid;border-radius:999px;padding:0 8px}
 #startBtn{animation:pulse 1.6s ease-in-out infinite}
 #startBtn.is-disabled{animation:none}
 @keyframes rise{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
@@ -177,16 +189,16 @@ input:focus,textarea:focus,select:focus{border-color:#ea8f2e;outline:none}
 /* 품사 마을 타일 */
 .vgrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
 .village{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;cursor:pointer;
-  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(0,0,0,.08)),var(--bg);border:3px solid var(--dk);border-radius:16px;padding:6px 7px 7px;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 4px 0 var(--dk);transition:transform .2s var(--pop),box-shadow .2s}
-.v-top{position:relative;z-index:1;display:flex;align-items:center;gap:4px;color:#fff;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.35);font-size:clamp(.85rem,1.7vw,1.05rem);white-space:nowrap}
+  background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 60%),var(--bg);border:3px solid var(--dk);border-radius:16px;padding:6px 7px 7px;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.6),0 4px 0 var(--dk);transition:transform .2s var(--pop),box-shadow .2s}
+.v-top{position:relative;z-index:1;display:flex;align-items:center;gap:4px;color:#3b2a1a;font-weight:900;text-shadow:0 1px 0 rgba(255,255,255,.7);font-size:clamp(.85rem,1.7vw,1.05rem);white-space:nowrap}
 .v-name{overflow:hidden;text-overflow:ellipsis}
-.v-n{margin-left:auto;background:rgba(0,0,0,.28);border-radius:999px;padding:0 7px;font-size:.78rem;text-shadow:none}
-.v-hint{position:relative;z-index:1;color:rgba(255,255,255,.95);font-size:.72rem;line-height:1.25;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.v-n{margin-left:auto;background:var(--dk);color:#fff;border-radius:999px;padding:0 7px;font-size:.78rem;text-shadow:none}
+.v-hint{position:relative;z-index:1;color:rgba(59,42,26,.72);font-size:.72rem;line-height:1.25}
 .v-ic{position:absolute;left:50%;top:50%;transform:translate(-50%,-42%);font-size:clamp(1.8rem,6vh,3.2rem);line-height:1;pointer-events:none;
   filter:drop-shadow(0 3px 0 rgba(0,0,0,.25));transition:opacity .3s,transform .3s var(--pop)}
 .village.has .v-ic{opacity:.3;transform:translate(-50%,-55%) scale(.8)}
-.slot{position:relative;z-index:1;flex:1;min-height:0;overflow:auto;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;justify-content:center;margin-top:4px;padding:5px;border-radius:10px;background:rgba(255,255,255,.26)}
+.slot{position:relative;z-index:1;flex:1;min-height:0;overflow:auto;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;justify-content:center;margin-top:4px;padding:5px;border-radius:10px;background:rgba(255,255,255,.42)}
 .slot .card{font-size:.92rem;padding:3px 9px;min-height:34px;box-shadow:0 3px 0 #b58a4c}
 .slot .card.ok{box-shadow:0 3px 0 var(--ok)}
 .slot .card.bad{box-shadow:0 3px 0 var(--bad)}
@@ -322,6 +334,16 @@ code{background:#f6e6c4;border-radius:6px;padding:1px 6px}
   .legend{display:none}
 }
 @media (max-height:760px),(max-width:760px){ .v-hint{display:none} }
+@media (max-height:800px){
+  #screen-home.active{gap:12px}
+  #screen-home .sign{padding:8px 24px}
+  #screen-home .sign .l1{font-size:clamp(1.6rem,5vw,2.4rem)}
+  #screen-home .sign .l2{font-size:clamp(1.3rem,3.8vw,1.8rem)}
+  .level{padding:12px 10px}
+  .lv-ic{font-size:2.3rem}
+  .home-rule{padding:6px 14px;font-size:.92rem}
+  .btn.mega{padding:11px 40px}
+}
 @media (max-width:860px){ .res-grid{grid-template-columns:1fr} }
 @media (max-width:640px){
   #screen-play.active{gap:12px;padding:8px 8px 10px}
@@ -345,6 +367,7 @@ code{background:#f6e6c4;border-radius:6px;padding:1px 6px}
   .levels{flex-wrap:nowrap;gap:8px}
   .level{flex:1 1 0;min-width:0;padding:12px 4px 10px;border-radius:16px}
   .level .lv-desc{display:none}
+  .level.learn{flex:none;padding:10px 12px;gap:10px}
   .lv-ic{font-size:2.1rem}
   .lv-name{font-size:1.15rem}
   .home-rule{font-size:.9rem}
@@ -387,6 +410,10 @@ code{background:#f6e6c4;border-radius:6px;padding:1px 6px}
     </h1>
     <p class="home-q">탐험 난이도를 골라 주세요</p>
     <div class="levels" id="levels" role="radiogroup" aria-label="난이도"></div>
+    <div class="learn-wrap">
+      <p class="learn-or">아직 9품사를 다 배우지 않았다면?</p>
+      <div id="learnLevel"></div>
+    </div>
     <p class="home-rule">🗺️ 탐험은 <b>5단계</b>! 단계마다 모든 단어를 맞혀야 다음 단계로 갈 수 있어요.</p>
     <button class="btn primary mega is-disabled" id="startBtn" data-act="startExp">탐험 시작하기 ▶</button>
     <button class="link-btn" data-act="teacher">🧑‍🏫 선생님 메뉴 (글감 만들기)</button>
@@ -527,22 +554,23 @@ code{background:#f6e6c4;border-radius:6px;padding:1px 6px}
 'use strict';
 /* ---------- 품사 정의 (마을별 흙빛 색감과 유물 아이콘) ---------- */
 const GROUPS = [
-  {k:'체언',  c:'#a87a12'},
-  {k:'용언',  c:'#556b2f'},
-  {k:'수식언',c:'#7e6341'},
-  {k:'관계언',c:'#2f5463'},
-  {k:'독립언',c:'#8c4527'}
+  {k:'체언',  c:'#e0882a'},
+  {k:'용언',  c:'#3f9a5a'},
+  {k:'수식언',c:'#6c6fd2'},
+  {k:'관계언',c:'#6b7c93'},
+  {k:'독립언',c:'#c24ea6'}
 ];
+// bg: 칸 바탕(밝은 파스텔), dk: 테두리·강조색, l: 아주 연한 바탕
 const POS = [
-  {k:'명사',  g:'체언',  ic:'🏺', bg:'#e2b33a', dk:'#a07510', l:'#fbefc6', hint:'사람·사물·장소의 이름'},
-  {k:'대명사',g:'체언',  ic:'🗿', bg:'#8f8c3f', dk:'#5f5c22', l:'#ecebc9', hint:'이름 대신 가리키는 말'},
-  {k:'수사',  g:'체언',  ic:'🎲', bg:'#93aba2', dk:'#5e766d', l:'#e3ece8', hint:'수량이나 순서를 나타냄'},
-  {k:'동사',  g:'용언',  ic:'🏃', bg:'#6e6a2f', dk:'#47441a', l:'#e5e3c7', hint:'움직임을 나타냄'},
-  {k:'형용사',g:'용언',  ic:'🔍', bg:'#6f9a7c', dk:'#476d53', l:'#dcebdf', hint:'성질이나 상태를 나타냄'},
-  {k:'관형사',g:'수식언',ic:'🧭', bg:'#b4956a', dk:'#7e6341', l:'#f1e5d3', hint:'체언 앞에서 꾸밈, 모양이 안 변함'},
-  {k:'부사',  g:'수식언',ic:'⏳', bg:'#7688a9', dk:'#4c5d7c', l:'#e0e6f1', hint:'주로 용언 앞에서 꾸밈'},
-  {k:'조사',  g:'관계언',ic:'🔗', bg:'#4f7d8f', dk:'#2f5463', l:'#d8e7ec', hint:'체언 뒤에 붙어 관계를 나타냄'},
-  {k:'감탄사',g:'독립언',ic:'📯', bg:'#c4734d', dk:'#8c4527', l:'#f6e0d4', hint:'느낌·부름·대답'}
+  {k:'명사',  g:'체언',  ic:'🏺', bg:'#ffd978', dk:'#d39a10', l:'#fff4cf', hint:'사람·사물·장소의 이름'},
+  {k:'대명사',g:'체언',  ic:'🗿', bg:'#ffbf9a', dk:'#e0753f', l:'#ffeadf', hint:'이름 대신 가리키는 말'},
+  {k:'수사',  g:'체언',  ic:'🎲', bg:'#ffadc2', dk:'#de5c80', l:'#ffe6ed', hint:'수량이나 순서를 나타냄'},
+  {k:'동사',  g:'용언',  ic:'🏃', bg:'#9fe0a8', dk:'#43a35a', l:'#e4f8e7', hint:'움직임을 나타냄'},
+  {k:'형용사',g:'용언',  ic:'🔍', bg:'#8fdcd0', dk:'#2fa395', l:'#dff6f2', hint:'성질이나 상태를 나타냄'},
+  {k:'관형사',g:'수식언',ic:'🧭', bg:'#c6b6f6', dk:'#7a62d4', l:'#f0ebfe', hint:'체언 앞에서 꾸밈, 모양이 안 변함'},
+  {k:'부사',  g:'수식언',ic:'⏳', bg:'#a3cff8', dk:'#3f8ad0', l:'#e4f1fd', hint:'주로 용언 앞에서 꾸밈'},
+  {k:'조사',  g:'관계언',ic:'🔗', bg:'#cfd8e6', dk:'#71839c', l:'#f0f3f8', hint:'체언 뒤에 붙어 관계를 나타냄'},
+  {k:'감탄사',g:'독립언',ic:'📯', bg:'#f8b4e4', dk:'#c652a8', l:'#fde7f6', hint:'느낌·부름·대답'}
 ];
 const POS_MAP = Object.fromEntries(POS.map(p => [p.k, p]));
 const posVars = p => { const o = POS_MAP[p]; return `--bg:${o.bg};--dk:${o.dk};--l:${o.l}`; };
@@ -780,9 +808,17 @@ function renderHome(){
     <span class="lv-ic" aria-hidden="true">${o.ic}</span>
     <span class="lv-name">${o.name}</span>
     ${o.stars ? `<span class="lv-stars" aria-hidden="true">${'★'.repeat(o.stars)}${'☆'.repeat(3 - o.stars)}</span>` : ''}
-    <span class="lv-desc">${o.desc}</span>
-    <span class="lv-desc">글감 ${o.count}개</span>
+    <span class="lv-desc">${o.desc} · 글감 ${o.count}개</span>
   </button>`).join('');
+  $('#learnLevel').innerHTML = `<button type="button" class="level learn" role="radio" aria-checked="${chosenLevel === 'learning'}"
+      data-act="pickLevel" data-id="learning" style="--d:.55s">
+    <span class="lv-ic" aria-hidden="true">📘</span>
+    <span class="learn-body">
+      <span class="lv-name">배우는 중</span>
+      <span class="learn-row"><span class="learn-desc">체언과 용언만 맞혀요</span>
+      <span class="learn-chips">${POS.filter(p => CORE_POS.includes(p.k)).map(p => `<i style="background:${p.bg};border-color:${p.dk}">${p.k}</i>`).join('')}</span></span>
+    </span>
+  </button>`;
   $('#startBtn').classList.toggle('is-disabled', !chosenLevel);
 }
 function renderTeacher(){
@@ -811,8 +847,11 @@ function startExpedition(levelKey, fixed){
   let pool, name;
   if (fixed) { pool = fixed.stories; name = fixed.name; }
   else if (levelKey === 'teacher') { pool = shuffle(loadCustom()); name = '선생님 글감'; }
+  else if (levelKey === 'learning') {   // 배우는 중: 쉬움·보통 글감에서 체언·용언만 문제로
+    pool = shuffle(LEVELS.filter(l => l.k !== 'hard').flatMap(l => l.stories)); name = '배우는 중';
+  }
   else { const lv = LEVELS.find(l => l.k === levelKey); pool = shuffle(lv.stories); name = lv.name; }
-  const core = levelKey === 'teacher' || levelKey === 'preview';
+  const core = ['teacher', 'preview', 'learning'].includes(levelKey);
   if (core) pool = pool.filter(hasCore);
   const stories = pool.slice(0, Math.min(STEPS, pool.length));
   if (!stories.length) { toast(core ? '체언·용언 단어가 들어 있는 글감이 없어요.' : '탐험할 글감이 없어요.'); return; }
