@@ -92,7 +92,16 @@ input:focus,textarea:focus,select:focus{border-color:var(--teal);outline:none}
 .hero h1{font-size:clamp(1.45rem,3.6vw,2rem);font-weight:800;line-height:1.3;color:#24433a}
 .hero h1 em{font-style:normal;color:var(--teal)}
 .hero p{margin:8px 0 0;color:var(--muted);font-size:.98rem}
-.hero-art{flex:0 0 46%;max-width:330px}
+.hero-art{flex:0 0 40%;max-width:300px}
+.qr-mini{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:8px 8px 6px;cursor:pointer;
+  box-shadow:0 4px 12px rgba(80,60,30,.08);transition:transform .2s var(--pop)}
+.qr-mini:hover{transform:translateY(-3px)}
+.qr-box{display:block;width:92px;height:92px}
+.qr-box svg,.qr-big svg{width:100%;height:100%}
+.qr-mini small{font-size:.7rem;font-weight:700;color:var(--muted);line-height:1.25;text-align:center}
+.qr-none{display:grid;place-items:center;width:100%;height:100%;font-size:.62rem;color:var(--soft);text-align:center;line-height:1.3;border:1.5px dashed var(--line2);border-radius:8px}
+.qr-big{width:min(320px,72vw);aspect-ratio:1;margin:12px auto;padding:10px;background:#fff;border:1px solid var(--line);border-radius:16px}
+.qr-url{word-break:break-all;font-weight:700;color:var(--teal-dk);background:var(--teal-l);border-radius:10px;padding:6px 10px;display:inline-block;margin:4px 0}
 .hero-art svg{width:100%;height:auto}
 .levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .level{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--ink);text-align:center;
@@ -371,6 +380,7 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
   .sbar{width:70px}
   .hero{padding:16px 18px}
   .hero-art{display:none}
+  .qr-box{width:76px;height:76px}
   .v-n,.mp-checks{display:none}
   .v-top{gap:5px}
   .levels{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -439,6 +449,10 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
         <h1>품사 마을 탐험대<em>에</em><br>오신 것을 환영해요!</h1>
         <p>이야기 지도를 완성하고<br>다양한 마을을 탐험해 보세요.</p>
       </div>
+      <button type="button" class="qr-mini" data-act="showQR" aria-label="휴대폰 접속 QR 코드 크게 보기">
+        <span class="qr-box" id="qrMini"></span>
+        <small>📱 휴대폰으로<br>바로 접속</small>
+      </button>
       <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 320 210"><ellipse cx="160" cy="188" rx="150" ry="18" fill="#e3efe0"/>
 <g><rect x="22" y="112" width="6" height="26" rx="2" fill="#b08a62"/><circle cx="25" cy="104" r="20" fill="#9fd3b0"/><circle cx="14" cy="114" r="12" fill="#8ccaa2"/>
 <rect x="292" y="104" width="6" height="30" rx="2" fill="#b08a62"/><path d="M295 50 L318 108 H272Z" fill="#7cc097"/><path d="M295 70 L314 116 H276Z" fill="#6fb68f"/></g>
@@ -958,6 +972,124 @@ function renderHome(){
   </button>`;
   $('#startBtn').classList.toggle('is-disabled', !chosenLevel);
 }
+/* ---------- 접속 QR 코드 (외부 라이브러리 없이 직접 생성: 바이트 모드, 오류 정정 M, 버전 1~10) ---------- */
+const QR_M = {   // 버전별 [전체 코드워드 수, 블록당 오류 정정 코드워드 수, 블록 수]
+  1:[26,10,1], 2:[44,16,1], 3:[70,26,1], 4:[100,18,2], 5:[134,24,2],
+  6:[172,16,4], 7:[196,18,4], 8:[242,22,4], 9:[292,22,5], 10:[346,26,5]
+};
+function qrMatrix(text){
+  const data = [...new TextEncoder().encode(text)];
+  let ver = 0;
+  for (let v = 1; v <= 10; v++) {
+    const [raw, ec, nb] = QR_M[v];
+    if (4 + (v < 10 ? 8 : 16) + data.length * 8 <= (raw - ec * nb) * 8) { ver = v; break; }
+  }
+  if (!ver) return null;
+  const [raw, ecLen, nBlocks] = QR_M[ver], dataCap = raw - ecLen * nBlocks, size = ver * 4 + 17;
+  // 1) 비트열: 모드(0100) + 길이 + 데이터 + 종료·채움
+  const bits = [];
+  const push = (val, n) => { for (let i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+  push(4, 4); push(data.length, ver < 10 ? 8 : 16); data.forEach(b => push(b, 8));
+  push(0, Math.min(4, dataCap * 8 - bits.length));
+  push(0, (8 - bits.length % 8) % 8);
+  for (let pad = 0xEC; bits.length < dataCap * 8; pad ^= 0xEC ^ 0x11) push(pad, 8);
+  const cw = []; for (let i = 0; i < bits.length; i += 8) cw.push(bits.slice(i, i + 8).reduce((a, b) => a << 1 | b, 0));
+  // 2) 리드-솔로몬 오류 정정 + 블록 섞기
+  const mul = (x, y) => { let z = 0; for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z; };
+  const div = new Array(ecLen).fill(0); div[ecLen - 1] = 1;
+  for (let i = 0, root = 1; i < ecLen; i++) { for (let j = 0; j < ecLen; j++) { div[j] = mul(div[j], root); if (j + 1 < ecLen) div[j] ^= div[j + 1]; } root = mul(root, 2); }
+  const rem = d => { const r = new Array(ecLen).fill(0); d.forEach(b => { const f = b ^ r.shift(); r.push(0); div.forEach((c, i) => r[i] ^= mul(c, f)); }); return r; };
+  const nShort = nBlocks - raw % nBlocks, shortLen = Math.floor(raw / nBlocks), blocks = [];
+  for (let i = 0, k = 0; i < nBlocks; i++) {
+    const d = cw.slice(k, k + shortLen - ecLen + (i < nShort ? 0 : 1)); k += d.length;
+    const b = d.concat(rem(d)); if (i < nShort) b.splice(shortLen - ecLen, 0, -1); blocks.push(b);
+  }
+  const all = [];
+  for (let i = 0; i < blocks[0].length; i++) blocks.forEach(b => { if (b[i] !== -1) all.push(b[i]); });
+  // 3) 기능 패턴
+  const M = Array.from({length:size}, () => new Array(size).fill(false));
+  const F = Array.from({length:size}, () => new Array(size).fill(false));
+  const set = (x, y, dark) => { M[y][x] = dark; F[y][x] = true; };
+  for (let i = 0; i < size; i++) { set(6, i, i % 2 === 0); set(i, 6, i % 2 === 0); }
+  [[3, 3], [size - 4, 3], [3, size - 4]].forEach(([cx, cy]) => {
+    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+      const x = cx + dx, y = cy + dy, d = Math.max(Math.abs(dx), Math.abs(dy));
+      if (x >= 0 && x < size && y >= 0 && y < size) set(x, y, d !== 2 && d !== 4);
+    }
+  });
+  if (ver > 1) {
+    const n = Math.floor(ver / 7) + 2, step = Math.ceil((ver * 4 + 4) / (n * 2 - 2)) * 2, pos = [6];
+    for (let p = size - 7; pos.length < n; p -= step) pos.splice(1, 0, p);
+    pos.forEach((ax, i) => pos.forEach((ay, j) => {
+      if ((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)) return;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) set(ax + dx, ay + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }));
+  }
+  const drawFormat = mask => {
+    const d = (0 << 3) | mask; let r = d;   // 오류 정정 M = 00
+    for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+    const b = ((d << 10) | r) ^ 0x5412, bit = i => ((b >>> i) & 1) === 1;
+    for (let i = 0; i <= 5; i++) set(8, i, bit(i));
+    set(8, 7, bit(6)); set(8, 8, bit(7)); set(7, 8, bit(8));
+    for (let i = 9; i < 15; i++) set(14 - i, 8, bit(i));
+    for (let i = 0; i < 8; i++) set(size - 1 - i, 8, bit(i));
+    for (let i = 8; i < 15; i++) set(8, size - 15 + i, bit(i));
+    set(8, size - 8, true);
+  };
+  drawFormat(0);
+  if (ver >= 7) {
+    let r = ver; for (let i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25);
+    const b = (ver << 12) | r;
+    for (let i = 0; i < 18; i++) { const bt = ((b >>> i) & 1) === 1, a = size - 11 + i % 3, c = Math.floor(i / 3); set(a, c, bt); set(c, a, bt); }
+  }
+  // 4) 데이터 배치 (오른쪽 아래부터 지그재그)
+  for (let right = size - 1, i = 0; right >= 1; right -= 2) {
+    if (right === 6) right = 5;
+    for (let v = 0; v < size; v++) for (let j = 0; j < 2; j++) {
+      const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - v : v;
+      if (!F[y][x] && i < all.length * 8) { M[y][x] = ((all[i >>> 3] >>> (7 - (i & 7))) & 1) === 1; i++; }
+    }
+  }
+  // 5) 마스크 8종 중 벌점이 가장 낮은 것 선택
+  const maskFn = [(x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, x => x % 3 === 0, (x, y) => (x + y) % 3 === 0,
+    (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0, (x, y) => x * y % 2 + x * y % 3 === 0,
+    (x, y) => (x * y % 2 + x * y % 3) % 2 === 0, (x, y) => ((x + y) % 2 + x * y % 3) % 2 === 0];
+  const applyMask = m => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!F[y][x] && maskFn[m](x, y)) M[y][x] = !M[y][x]; };
+  const penalty = () => {
+    let p = 0, dark = 0;
+    for (let y = 0; y < size; y++) for (const line of [M[y], M.map(r => r[y])]) {
+      let run = 1;
+      for (let x = 1; x <= size; x++) { if (x < size && line[x] === line[x - 1]) run++; else { if (run >= 5) p += run - 2; run = 1; } }
+    }
+    for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) { const c = M[y][x]; if (c === M[y][x + 1] && c === M[y + 1][x] && c === M[y + 1][x + 1]) p += 3; }
+    M.forEach(r => r.forEach(c => dark += c));
+    return p + Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10;
+  };
+  let best = 0, bestP = Infinity;
+  for (let m = 0; m < 8; m++) { applyMask(m); drawFormat(m); const p = penalty(); if (p < bestP) { bestP = p; best = m; } applyMask(m); }
+  applyMask(best); drawFormat(best);
+  return M;
+}
+function qrSVG(text){
+  const M = qrMatrix(text); if (!M) return '';
+  const n = M.length, q = 4; let d = '';
+  M.forEach((row, y) => row.forEach((c, x) => { if (c) d += `M${x + q} ${y + q}h1v1h-1z`; }));
+  return `<svg viewBox="0 0 ${n + q * 2} ${n + q * 2}" shape-rendering="crispEdges" role="img" aria-label="앱 접속 QR 코드"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#24433a"/></svg>`;
+}
+const appURL = () => location.origin + location.pathname;
+const isWebURL = () => /^https?:$/.test(location.protocol);
+function renderQR(){
+  $('#qrMini').innerHTML = isWebURL() ? qrSVG(appURL()) : '<span class="qr-none">배포된 주소로<br>열면 QR이<br>나타나요</span>';
+}
+function showQR(){
+  if (!isWebURL()) { toast('인터넷 주소(Vercel 배포 주소)로 열면 QR 코드가 만들어져요.'); return; }
+  openModal(`<h2 style="text-align:center">📱 휴대폰으로 바로 접속하기</h2>
+    <p class="muted" style="text-align:center;margin:0">휴대폰 카메라로 QR 코드를 비추면 이 앱이 열려요.</p>
+    <div class="qr-big">${qrSVG(appURL())}</div>
+    <p style="text-align:center;margin:0"><span class="qr-url">${esc(appURL())}</span></p>
+    <div class="row-btns"><button class="btn" data-act="copyURL">🔗 주소 복사</button><button class="btn primary" data-act="closeModal">닫기</button></div>`);
+}
+
 function renderTeacher(){
   const custom = loadCustom();
   $('#customList').innerHTML = custom.length ? custom.map(st => {
@@ -1636,6 +1768,11 @@ function handleAct(act, id, el){
     case 'reset': if (!game.busy && !game.done && confirm('이 단계를 처음부터 다시 할까요?')) startGame(game.story); break;
     case 'toResult': toResult(); break;
     case 'replay': startExpedition(exp.level, exp.fixed); break;
+    case 'showQR': showQR(); break;
+    case 'copyURL':
+      if (navigator.clipboard) navigator.clipboard.writeText(appURL()).then(() => toast('주소를 복사했어요.'), () => toast('복사하지 못했어요. 주소를 직접 선택해 주세요.'));
+      else toast('이 브라우저에서는 복사가 안 돼요. 주소를 직접 선택해 주세요.');
+      break;
     case 'nextLevel':
       if (id) { chosenLevel = id; startExpedition(id); } else startExpedition(exp.level, exp.fixed);
       break;
@@ -1745,6 +1882,7 @@ function endDrag(d, drop){
   if (drop && d.zone) moveCard(d.tid, d.zone.dataset.drop, rect);
 }
 
+renderQR();
 renderHome();
 </script>
 </body>
