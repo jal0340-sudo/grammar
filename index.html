@@ -1500,9 +1500,9 @@ function drawCert(name){
   x.fillStyle = TEAL; x.font = `800 34px ${F}`; x.fillText('품사 마을 탐험대', W / 2, 298);
   x.fillStyle = INK; x.font = `900 96px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 400);
   [-1, 0, 1].forEach((d, i) => { starPath(W / 2 + d * 62, 452, 26); x.fillStyle = i < r.stars ? '#e3a83a' : '#e6ddc8'; x.fill(); });
-  x.fillStyle = INK; x.font = `900 72px ${F}`; x.fillText(name, W / 2, 552);
-  const nw = Math.max(240, x.measureText(name).width + 70);
-  x.strokeStyle = GOLD; x.lineWidth = 5; x.beginPath(); x.moveTo(W / 2 - nw / 2, 578); x.lineTo(W / 2 + nw / 2, 578); x.stroke();
+  x.fillStyle = INK; x.font = `800 58px ${F}`; x.fillText(name, W / 2, 544);
+  const nw = Math.max(220, x.measureText(name).width + 70);
+  x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.moveTo(W / 2 - nw / 2, 566); x.lineTo(W / 2 + nw / 2, 566); x.stroke();
   x.fillStyle = '#2f3a36'; x.font = `500 36px ${F}`;
   const body = "위 사람은 이야기 속에 숨겨진 품사를 완벽히 탐색하여 '품사 마을 지도'를 완성하였으므로 '우수 품사 탐험가'로 인정합니다.";
   wrapLines(x, body, 1140).forEach((ln, i) => x.fillText(ln, W / 2, 642 + i * 52));
