@@ -139,6 +139,14 @@ input:focus,textarea:focus,select:focus{border-color:var(--teal);outline:none}
 .learn-chips{display:flex;flex-wrap:wrap;gap:5px}
 .learn-chips i{font-style:normal;font-size:.76rem;font-weight:700;border-radius:999px;padding:1px 10px}
 .chev{flex:none;font-size:1.6rem;color:var(--soft)}
+/* 배우는 중 + 선생님 글감 나란히 */
+.sub-levels{display:flex;gap:12px;margin-top:12px}
+.sub-levels .level.learn{margin-top:0}
+.sub-levels.pair .level.learn{flex:1 1 0;min-width:0}
+.sub-levels.pair .level.learn:not(.teach){flex-grow:1.55}
+.sub-levels.pair .learn-art{width:46px;height:46px;font-size:1.6rem;border-radius:14px}
+.sub-levels.pair .lv-name{font-size:1.1rem}
+.level.teach .learn-art{background:#fff3c4}
 .note{display:flex;align-items:center;gap:8px;margin:14px 0 0;padding:10px 14px;border:1.5px dashed var(--line2);border-radius:14px;background:#fffdf8;color:var(--muted);font-size:.9rem;font-weight:600}
 .home-cta{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:16px}
 @keyframes nudge{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
@@ -333,6 +341,17 @@ table.sum{width:100%;border-collapse:separate;border-spacing:0;min-width:420px;b
 .page-head{display:flex;align-items:center;gap:12px;margin:4px 0 16px;flex-wrap:wrap}
 .page-title{font-size:1.35rem;font-weight:800}
 .teacher-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sel-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;border-radius:14px;background:var(--teal-l);border:1px solid #bfe0d3}
+.sel-bar[hidden]{display:none}
+#selCount{flex:1;min-width:200px;font-weight:600}
+.sel-dirty{color:#c25e1d;font-weight:700}
+.sel-btns{display:flex;gap:8px;flex-wrap:wrap}
+.story.picked{border-color:var(--teal);box-shadow:0 0 0 2px rgba(47,138,111,.18)}
+.story-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.use-check{display:inline-flex;align-items:center;gap:6px;font-weight:700;cursor:pointer;color:var(--teal-dk)}
+.use-check input{width:20px;height:20px;min-height:0;accent-color:var(--teal);cursor:pointer}
+.use-state{font-size:.78rem;font-weight:700;color:var(--soft);background:#f3f0e9;border-radius:999px;padding:2px 8px}
+.use-state.on{color:var(--teal-dk);background:var(--teal-l)}
 .story-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
 .story{display:flex;flex-direction:column;gap:8px;background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:14px}
 .story h3{font-size:1.05rem}
@@ -405,6 +424,10 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
   .levels{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
   .level .lv-desc{display:none}
   .lv-name{font-size:1.05rem}
+  .sub-levels{gap:8px}
+  .sub-levels.pair .learn-art,.sub-levels.pair .learn-chips,.sub-levels.pair .chev{display:none}
+  .sub-levels.pair .level.learn{padding:10px 12px}
+  .sub-levels.pair .learn-desc{font-size:.78rem}
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat:nth-child(3){border-left:0}
   .stat:nth-child(n+3){border-top:1px solid var(--line)}
@@ -488,7 +511,7 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
     </div>
     <h2 class="sec-h">탐험 난이도를 골라 주세요</h2>
     <div class="levels" id="levels" role="radiogroup" aria-label="난이도"></div>
-    <div id="learnLevel"></div>
+    <div id="learnLevel" class="sub-levels"></div>
     <p class="note">🗺️ 탐험은 5단계! 단계마다 모든 단어를 맞혀야 다음 단계로 갈 수 있어요.</p>
     <div class="home-cta">
       <button class="btn primary cta is-disabled" id="startBtn" data-act="startExp"><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#fff" stroke="#f3dca6" stroke-width="2"/><path d="M13 5 L16 13 H10Z" fill="#e45b4b"/><path d="M10 13 H16 L13 21Z" fill="#3d6f8e"/><circle cx="13" cy="13" r="1.6" fill="#fff"/></svg> 탐험 시작하기 →</button>
@@ -584,13 +607,21 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
       <h2 class="page-title">🧭 품사 마을 탐험대장 메뉴</h2>
     </div>
     <div class="panel">
-      <p class="muted" style="margin-top:0">저장한 글감이 있으면 첫 화면에 <b>‘선생님 글감’</b> 난이도가 생겨요. 탐험할 때 저장한 글감 중에서 최대 5개가 무작위로 나와요.<br>
+      <p class="muted" style="margin-top:0">글감을 저장한 뒤 <b>‘탐험에 사용’</b>을 고르고 <b>‘선택한 글감 탐험에 반영하기’</b>를 누르면, 첫 화면 ‘배우는 중’ 옆에 <b>‘선생님 글감’</b> 버튼이 생겨요. 탐험할 때 고른 글감 중에서 최대 5개가 무작위로 나와요.<br>
         선생님 글감은 <b>9품사 모두</b>를 맞히는 방식이에요. 체언·용언만 확인하려면 첫 화면의 <b>‘배우는 중’</b>을 이용하세요.</p>
       <div class="teacher-bar">
         <button class="btn primary" data-act="newStory">✏️ 선생님 글감 직접 입력</button>
         <button class="btn" data-act="importBtn">📂 글감 파일 불러오기</button>
         <button class="btn" data-act="export">💾 글감 파일로 내보내기</button>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="sel-bar" id="selBar" hidden>
+        <span id="selCount"></span>
+        <span class="sel-btns">
+          <button class="btn small" data-act="selAll">전체 선택</button>
+          <button class="btn small" data-act="selNone">전체 해제</button>
+          <button class="btn small primary" id="applySel" data-act="applySel">✔ 선택한 글감 탐험에 반영하기</button>
+        </span>
       </div>
       <div id="customList" class="story-list"></div>
     </div>
@@ -718,7 +749,27 @@ const LEVELS = [
     '길/명사+이/조사 무척/부사 좁다/형용사+.',
     '형/명사+은/조사 축구/명사+를/조사 좋아한다/동사/좋아하다+.',
     '너/대명사+는/조사 정말/부사 친절하구나/형용사/친절하다+.',
-    '학생들/명사+이/조사 큰/형용사/크다 소리/명사+로/조사 웃었다/동사/웃다+.'
+    '학생들/명사+이/조사 큰/형용사/크다 소리/명사+로/조사 웃었다/동사/웃다+.',
+    '고양이/명사+가/조사 생선/명사+을/조사 먹었다/동사/먹다+.',
+    '나/대명사+는/조사 매우/부사 기쁘다/형용사+.',
+    '동생/명사+이/조사 엉엉/부사 울었다/동사/울다+.',
+    '우리/대명사+는/조사 학교/명사+에/조사 일찍/부사 갔다/동사/가다+.',
+    '할머니/명사+가/조사 밭/명사+에서/조사 일하신다/동사/일하다+.',
+    '거기/대명사+는/조사 너무/부사 춥다/형용사+.',
+    '아빠/명사+가/조사 차/명사+를/조사 닦았다/동사/닦다+.',
+    '눈/명사+이/조사 펑펑/부사 내렸다/동사/내리다+.',
+    '친구/명사+가/조사 나/대명사+에게/조사 웃었다/동사/웃다+.',
+    '방/명사+이/조사 아주/부사 깨끗하다/형용사+.',
+    '그녀/대명사+는/조사 피아노/명사+를/조사 잘/부사 친다/동사/치다+.',
+    '강물/명사+이/조사 천천히/부사 흐른다/동사/흐르다+.',
+    '오빠/명사+가/조사 공/명사+을/조사 던졌다/동사/던지다+.',
+    '하늘/명사+이/조사 맑고/형용사/맑다 높다/형용사+.',
+    '우리/대명사+는/조사 함께/부사 사진/명사+을/조사 찍었다/동사/찍다+.',
+    '토끼/명사+가/조사 빨리/부사 달린다/동사/달리다+.',
+    '저/대명사+는/조사 수학/명사+을/조사 좋아합니다/동사/좋아하다+.',
+    '꽃밭/명사+이/조사 무척/부사 아름답다/형용사+.',
+    '선생님/명사+께서/조사 책/명사+을/조사 읽으셨다/동사/읽다+.',
+    '바람/명사+이/조사 살랑살랑/부사 분다/동사/불다+.'
   ]},
   {k:'normal', name:'보통', ic:'🧭', stars:2, desc:'수사·관형사·부사가 함께 나와요', src:[
     '오늘/명사 아침/명사+에/조사 우리/대명사+는/조사 사과/명사 셋/수사+을/조사 아주/부사 맛있게/형용사/맛있다 나누어/동사/나누다 먹었다/동사/먹다+.',
@@ -750,7 +801,27 @@ const LEVELS = [
     '너/대명사+는/조사 무슨/관형사 노래/명사+를/조사 가장/부사 좋아하니/동사/좋아하다+?',
     '거기/대명사+는/조사 언제나/부사 사람/명사+이/조사 많다/형용사+.',
     '동생/명사+과/조사 나/대명사+는/조사 둘/수사+이서/조사 빵/명사+을/조사 만들었다/동사/만들다+.',
-    '헌/관형사 옷/명사+을/조사 깨끗이/부사 빨았다/동사/빨다+.'
+    '헌/관형사 옷/명사+을/조사 깨끗이/부사 빨았다/동사/빨다+.',
+    '나/대명사+는/조사 새/관형사 공책/명사 두/관형사 권/명사+을/조사 샀다/동사/사다+.',
+    '넷/수사+이/조사 둘러앉아/동사/둘러앉다 밥/명사+을/조사 먹었다/동사/먹다+.',
+    '그/관형사 꽃/명사+은/조사 향기/명사+가/조사 참/부사 좋다/형용사+.',
+    '모든/관형사 사람/명사+이/조사 박수/명사+를/조사 열심히/부사 쳤다/동사/치다+.',
+    '다섯/수사+에서/조사 둘/수사+을/조사 빼면/동사/빼다 셋/수사+이/조사 남는다/동사/남다+.',
+    '저/관형사 건물/명사+은/조사 매우/부사 높다/형용사+.',
+    '여기/대명사+에/조사 사과/명사 세/관형사 개/명사+가/조사 남았다/동사/남다+.',
+    '우리/대명사 반/명사 학생/명사 여러/관형사 명/명사+이/조사 상/명사+을/조사 받았다/동사/받다+.',
+    '그/대명사+는/조사 헌/관형사 자전거/명사+를/조사 새로/부사 고쳤다/동사/고치다+.',
+    '첫/관형사 수업/명사+은/조사 아주/부사 즐거웠다/형용사/즐겁다+.',
+    '둘/수사+이서/조사 무거운/형용사/무겁다 상자/명사+를/조사 옮겼다/동사/옮기다+.',
+    '이/관형사 가방/명사+은/조사 저것/대명사+보다/조사 가볍다/형용사+.',
+    '언니/명사+는/조사 귤/명사 한/관형사 개/명사+를/조사 천천히/부사 먹었다/동사/먹다+.',
+    '셋/수사 중/명사+에서/조사 하나/수사+만/조사 골랐다/동사/고르다+.',
+    '무슨/관형사 일/명사+이/조사 생겼니/동사/생기다+?',
+    '그들/대명사+은/조사 온/관형사 마을/명사+을/조사 깨끗이/부사 청소했다/동사/청소하다+.',
+    '어느/관형사 길/명사+이/조사 더/부사 빠르니/형용사/빠르다+?',
+    '아이/명사 다섯/수사+이/조사 운동장/명사+을/조사 힘껏/부사 달렸다/동사/달리다+.',
+    '새/관형사 집/명사+은/조사 무척/부사 넓다/형용사+.',
+    '나/대명사+는/조사 친구/명사 둘/수사+과/조사 영화/명사+를/조사 보았다/동사/보다+.'
   ]},
   {k:'hard', name:'어려움', ic:'🏔️', stars:3, desc:'감탄사까지! 9품사가 모두 나와요', src:[
     '와/감탄사+, 저/관형사 하늘/명사+에/조사 별/명사+이/조사 정말/부사 많구나/형용사/많다+! 나/대명사+는/조사 별/명사 하나/수사+를/조사 새/관형사 공책/명사+에/조사 그렸다/동사/그리다+.',
@@ -782,7 +853,27 @@ const LEVELS = [
     '아이고/감탄사+, 이/관형사 짐/명사+은/조사 너무/부사 무거워서/형용사/무겁다 못/부사 들겠다/동사/들다+.',
     '응/감탄사+, 나/대명사+는/조사 그것/대명사+을/조사 벌써/부사 두/관형사 번/명사 보았어/동사/보다+.',
     '어머/감탄사+, 저/관형사 많은/형용사/많다 사람/명사+이/조사 어디/대명사+로/조사 가지/동사/가다+?',
-    '이런/감탄사+, 우리/대명사 다섯/수사+이/조사 탈/동사/타다 차/명사+가/조사 벌써/부사 떠났네/동사/떠나다+!'
+    '이런/감탄사+, 우리/대명사 다섯/수사+이/조사 탈/동사/타다 차/명사+가/조사 벌써/부사 떠났네/동사/떠나다+!',
+    '와/감탄사+, 저/관형사 커다란/형용사/커다랗다 고래/명사 두/관형사 마리/명사+가/조사 바다/명사 위/명사+로/조사 힘차게/형용사/힘차다 뛰었다/동사/뛰다+!',
+    '아/감탄사+, 나/대명사+는/조사 그/관형사 책/명사+의/조사 마지막/명사 장/명사+을/조사 드디어/부사 다/부사 읽었다/동사/읽다+.',
+    '네/감탄사+, 저희/대명사 셋/수사+이/조사 그곳/대명사+에/조사 함께/부사 갈게요/동사/가다+.',
+    '어머/감탄사+, 이/관형사 작은/형용사/작다 강아지/명사+가/조사 여기/대명사+까지/조사 왔구나/동사/오다+!',
+    '자/감탄사+, 너희/대명사 넷/수사+은/조사 이/관형사 문제/명사+를/조사 천천히/부사 풀어라/동사/풀다+.',
+    '아이고/감탄사+, 저/관형사 높은/형용사/높다 산/명사+을/조사 우리/대명사 둘/수사+이/조사 끝/명사+까지/조사 올랐구나/동사/오르다+!',
+    '응/감탄사+, 나/대명사+는/조사 저/관형사 파란/형용사/파랗다 우산/명사 하나/수사+를/조사 골랐어/동사/고르다+.',
+    '우아/감탄사+, 새/관형사 운동장/명사+이/조사 정말/부사 넓고/형용사/넓다 깨끗하구나/형용사/깨끗하다+!',
+    '야/감탄사+, 너/대명사+는/조사 그/관형사 무거운/형용사/무겁다 가방/명사+을/조사 왜/부사 들고/동사/들다 왔니/동사/오다+?',
+    '글쎄/감탄사+, 그/관형사 일/명사+은/조사 나/대명사+도/조사 잘/부사 모르겠다/동사/모르다+.',
+    '어머나/감탄사+, 여기/대명사+에/조사 귀여운/형용사/귀엽다 병아리/명사 열/관형사 마리/명사+가/조사 모였어/동사/모이다+!',
+    '그래/감탄사+, 우리/대명사 다섯/수사+이/조사 힘/명사+을/조사 모아/동사/모으다 이/관형사 일/명사+을/조사 끝내자/동사/끝내다+.',
+    '오/감탄사+, 저/관형사 하얀/형용사/하얗다 구름/명사+이/조사 마치/부사 솜사탕/명사 같구나/형용사/같다+!',
+    '앗/감탄사+, 연필/명사 두/관형사 자루/명사+를/조사 바닥/명사+에/조사 그만/부사 놓쳤어/동사/놓치다+!',
+    '음/감탄사+, 이/관형사 두/관형사 그림/명사+은/조사 정말/부사 많이/부사 비슷하구나/형용사/비슷하다+.',
+    '여보세요/감탄사+, 저희/대명사 둘/수사+이/조사 곧/부사 그곳/대명사+으로/조사 갈게요/동사/가다+.',
+    '에구머니/감탄사+, 저/관형사 작은/형용사/작다 새/명사+가/조사 창문/명사+에/조사 부딪혔어/동사/부딪히다+!',
+    '와/감탄사+, 우리/대명사 반/명사+이/조사 모든/관형사 경기/명사+에서/조사 이겼다/동사/이기다+!',
+    '아니/감탄사+, 넷/수사+이서/조사 저/관형사 큰/형용사/크다 수박/명사 하나/수사+를/조사 금방/부사 먹었니/동사/먹다+?',
+    '어/감탄사+, 저/관형사 귀여운/형용사/귀엽다 아기/명사+가/조사 엄마/명사 품/명사+에서/조사 곤히/부사 잔다/동사/자다+.'
   ]}
 ];
 LEVELS.forEach(lv => { lv.stories = lv.src.map((s, i) => ({id:lv.k + i, eojeols:parseCompact(s)})); });
@@ -944,7 +1035,7 @@ const learningPool = () => LEVELS.filter(l => l.k !== 'easy').flatMap(l => l.sto
   .filter(st => allPieces(st).filter(p => CORE_POS.includes(p.p)).length >= LEARN_MIN);
 const hasQuiz = st => allPieces(st).some(p => POS_MAP[p.p]);   // 예전에 '그 외 품사'로만 저장된 글감은 제외
 function normalizeStory(st, id){
-  return {id, title:st.title.slice(0, 30), custom:true, eojeols:st.eojeols.map(ej => ({
+  return {id, title:st.title.slice(0, 30), custom:true, use:st.use !== false, eojeols:st.eojeols.map(ej => ({
     pre:String(ej.pre||''), post:String(ej.post||''),
     pieces:ej.pieces.map(p => ({s:p.s, p:p.p, b:isYongeon(p.p) ? String(p.b||'') : ''}))}))};
 }
@@ -962,16 +1053,14 @@ function saveCustom(list){
 const findCustom = id => loadCustom().find(s => s.id === id);
 
 /* ---------- 첫 화면: 난이도 선택 ---------- */
+// 탐험에 쓰도록 고른 선생님 글감 (use가 false인 글감은 제외)
+const teacherPool = () => loadCustom().filter(st => st.use !== false && hasQuiz(st));
 function levelOptions(){
-  const opts = LEVELS.map(lv => ({k:lv.k, name:lv.name, ic:lv.ic, desc:lv.desc, stars:lv.stars, count:lv.stories.length}));
-  const custom = loadCustom();
-  const usable = custom.filter(hasQuiz).length;
-  if (usable) opts.push({k:'teacher', name:'선생님 글감', ic:'✏️', desc:'선생님이 만든 글감으로 9품사를 맞혀요', stars:0, count:usable});
-  return opts;
+  return LEVELS.map(lv => ({k:lv.k, name:lv.name, ic:lv.ic, desc:lv.desc, stars:lv.stars, count:lv.stories.length}));
 }
 function renderHome(){
-  const opts = levelOptions();
-  if (chosenLevel && !opts.some(o => o.k === chosenLevel)) chosenLevel = null;
+  const opts = levelOptions(), tCount = teacherPool().length;
+  if (chosenLevel === 'teacher' && !tCount) chosenLevel = null;
   $('#levels').innerHTML = opts.map((o, i) => `<button type="button" class="level" role="radio" aria-checked="${chosenLevel === o.k}"
       data-act="pickLevel" data-id="${o.k}" style="--d:${(.15 + i * .08).toFixed(2)}s;--lv-bg:${LV_COLOR[o.k][0]};--lv-bd:${LV_COLOR[o.k][1]}">
     <span class="lv-ic" aria-hidden="true">${o.ic}</span>
@@ -979,6 +1068,8 @@ function renderHome(){
     ${o.stars ? `<span class="lv-stars" aria-hidden="true">${'★'.repeat(o.stars)}${'☆'.repeat(3 - o.stars)}</span>` : ''}
     <span class="lv-desc">${o.desc} · 글감 ${o.count}개</span>
   </button>`).join('');
+  // 배우는 중 (+ 선생님 글감이 있으면 옆에 나란히)
+  $('#learnLevel').classList.toggle('pair', tCount > 0);
   $('#learnLevel').innerHTML = `<button type="button" class="level learn" role="radio" aria-checked="${chosenLevel === 'learning'}"
       data-act="pickLevel" data-id="learning" style="--d:.45s">
     <span class="learn-art" aria-hidden="true">⛰️</span>
@@ -988,7 +1079,15 @@ function renderHome(){
       <span class="learn-chips">${POS.filter(p => CORE_POS.includes(p.k)).map(p => `<i style="background:${p.l};color:${p.dk};box-shadow:inset 0 0 0 1.5px ${p.bg}">${p.k}</i>`).join('')}</span>
     </span>
     <span class="chev" aria-hidden="true">›</span>
-  </button>`;
+  </button>${tCount ? `<button type="button" class="level learn teach" role="radio" aria-checked="${chosenLevel === 'teacher'}"
+      data-act="pickLevel" data-id="teacher" style="--d:.52s;--lv-bg:${LV_COLOR.teacher[0]};--lv-bd:${LV_COLOR.teacher[1]}">
+    <span class="learn-art" aria-hidden="true">✏️</span>
+    <span class="learn-body">
+      <span class="lv-name">선생님 글감</span>
+      <span class="learn-desc">9품사를 맞혀요 · 글감 ${tCount}개</span>
+    </span>
+    <span class="chev" aria-hidden="true">›</span>
+  </button>` : ''}`;
   $('#startBtn').classList.toggle('is-disabled', !chosenLevel);
 }
 /* ---------- 접속 QR 코드 (외부 라이브러리 없이 직접 생성: 바이트 모드, 오류 정정 M, 버전 1~10) ---------- */
@@ -1144,11 +1243,23 @@ document.addEventListener('submit', e => {
   }
 });
 
-function renderTeacher(){
+// 탐험에 쓸 글감 선택: 체크 상자로 고른 뒤 '반영하기'를 눌러야 저장됨
+let teacherSel = new Set();
+function renderTeacher(resetSel = true){
   const custom = loadCustom();
+  if (resetSel) teacherSel = new Set(custom.filter(st => st.use !== false).map(st => st.id));
+  const used = custom.filter(st => st.use !== false).map(st => st.id).sort().join('|');
+  const changed = used !== [...teacherSel].sort().join('|');
+  $('#selBar').hidden = !custom.length;
+  $('#selCount').innerHTML = `탐험에 사용할 글감 <b>${teacherSel.size}</b> / ${custom.length}개 선택${changed ? ' <span class="sel-dirty">· 아직 반영 안 됨</span>' : ''}`;
+  $('#applySel').classList.toggle('is-disabled', !changed);
   $('#customList').innerHTML = custom.length ? custom.map(st => {
     const pcs = allPieces(st).filter(p => POS_MAP[p.p]), kinds = new Set(pcs.map(p => p.p)).size;
-    return `<article class="story"><h3>${esc(st.title)}</h3>
+    const on = teacherSel.has(st.id), live = st.use !== false;
+    return `<article class="story${on ? ' picked' : ''}">
+      <div class="story-top"><label class="use-check"><input type="checkbox" data-sel="${esc(st.id)}"${on ? ' checked' : ''}> 탐험에 사용</label>
+        <span class="use-state${live ? ' on' : ''}">${live ? '✅ 사용 중' : '사용 안 함'}</span></div>
+      <h3>${esc(st.title)}</h3>
       <p class="sc-text">“${esc(storyText(st))}”</p>
       <div class="sc-meta">🧩 단어 카드 ${pcs.length}개 · 🏘️ ${kinds}개 마을</div>
       <div class="sc-btns">
@@ -1157,6 +1268,12 @@ function renderTeacher(){
         <button class="btn small danger" data-act="del" data-id="${esc(st.id)}">삭제</button>
       </div></article>`;
   }).join('') : '<p class="empty">아직 저장된 선생님 글감이 없어요.</p>';
+}
+function applyTeacherSel(){
+  const list = loadCustom().map(st => ({...st, use:teacherSel.has(st.id)}));
+  saveCustom(list); renderTeacher(); renderHome();
+  const n = list.filter(st => st.use).length;
+  toast(n ? `탐험 글감 ${n}개를 반영했어요. 첫 화면 ‘선생님 글감’에서 이 글감만 나와요.` : '선택한 글감이 없어서 첫 화면의 ‘선생님 글감’ 버튼이 숨겨져요.');
 }
 (function waveTitle(){
   let i = 0;
@@ -1169,7 +1286,7 @@ function renderTeacher(){
 function startExpedition(levelKey, fixed){
   let pool, name;
   if (fixed) { pool = fixed.stories; name = fixed.name; }
-  else if (levelKey === 'teacher') { pool = shuffle(loadCustom()); name = '선생님 글감'; }
+  else if (levelKey === 'teacher') { pool = shuffle(teacherPool()); name = '선생님 글감'; }
   else if (levelKey === 'learning') { pool = shuffle(learningPool()); name = '배우는 중'; }
   else { const lv = LEVELS.find(l => l.k === levelKey); pool = shuffle(lv.stories); name = lv.name; }
   const core = levelKey === 'learning';
@@ -1837,6 +1954,7 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   const el = e.target;
   if (el.id === 'importFile') { importFile(el); return; }
+  if (el.dataset.sel) { if (el.checked) teacherSel.add(el.dataset.sel); else teacherSel.delete(el.dataset.sel); renderTeacher(false); return; }
   if (!el.classList.contains('ed-pos')) return;
   const i = +el.dataset.ei, k = +el.dataset.pi, pc = edState.eojeols[i].pieces[k];
   pc.p = el.value; if (!isYongeon(pc.p)) pc.b = '';
@@ -1874,7 +1992,7 @@ function importFile(input){
       const d = JSON.parse(rd.result), arr = Array.isArray(d) ? d : (d && d.stories) || [];
       const ok = arr.filter(isValidStory).map((st, i) => normalizeStory(st, 'c' + Date.now().toString(36) + i));
       if (!ok.length) { toast('불러올 수 있는 글감이 없어요. 파일을 확인해 주세요.'); return; }
-      saveCustom(loadCustom().concat(ok)); renderTeacher();
+      saveCustom(loadCustom().concat(ok)); ok.forEach(st => { if (st.use) teacherSel.add(st.id); }); renderTeacher(false); renderHome();
       toast(`글감 ${ok.length}개를 불러왔어요.`);
     } catch (e) { toast('파일을 읽지 못했어요. 이 앱에서 내보낸 글감 파일인지 확인해 주세요.'); }
     input.value = '';
@@ -1923,9 +2041,12 @@ function handleAct(act, id, el){
     case 'edit': { const st = findCustom(id); if (st) openEditor(st); break; }
     case 'del': {
       const st = findCustom(id);
-      if (st && confirm(`「${st.title}」 글감을 삭제할까요?`)) { saveCustom(loadCustom().filter(s => s.id !== id)); renderTeacher(); toast('삭제했어요.'); }
+      if (st && confirm(`「${st.title}」 글감을 삭제할까요?`)) { saveCustom(loadCustom().filter(s => s.id !== id)); teacherSel.delete(id); renderTeacher(false); renderHome(); toast('삭제했어요.'); }
       break;
     }
+    case 'selAll': teacherSel = new Set(loadCustom().map(s => s.id)); renderTeacher(false); break;
+    case 'selNone': teacherSel = new Set(); renderTeacher(false); break;
+    case 'applySel': applyTeacherSel(); break;
     case 'newStory': openEditor(null); break;
     case 'importBtn': $('#importFile').click(); break;
     case 'export': exportStories(); break;
@@ -1933,12 +2054,13 @@ function handleAct(act, id, el){
     case 'edPlay': { const st = collectEditor(); if (st) startExpedition('preview', {name:'미리 보기', stories:[st]}); break; }
     case 'edSave': {
       const st = collectEditor(); if (!st) return;
-      const list = loadCustom();
-      if (st.id && list.some(s => s.id === st.id)) list[list.findIndex(s => s.id === st.id)] = st;
-      else { st.id = 'c' + Date.now().toString(36); list.push(st); }
+      const list = loadCustom(), at = st.id ? list.findIndex(s => s.id === st.id) : -1;
+      if (at >= 0) { st.use = list[at].use !== false; list[at] = st; }        // 고친 글감은 원래 사용 여부 유지
+      else { st.id = 'c' + Date.now().toString(36); st.use = true; list.push(st); }   // 새 글감은 탐험에 바로 사용
       const ok = saveCustom(list); edState.id = st.id;
-      renderTeacher(); show('teacher');
-      toast(ok ? '글감을 저장했어요!' : '이 브라우저에서는 저장 공간을 쓸 수 없어 이번 접속 동안만 기억해요. 파일로 내보내 두세요.');
+      renderTeacher(); renderHome(); show('teacher');
+      toast(ok ? (at >= 0 ? '글감을 저장했어요!' : '글감을 저장했어요! 새 글감은 탐험에 바로 사용돼요. 빼려면 체크를 풀고 반영하세요.')
+               : '이 브라우저에서는 저장 공간을 쓸 수 없어 이번 접속 동안만 기억해요. 파일로 내보내 두세요.');
       break;
     }
     case 'check': checkMap(); break;
