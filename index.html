@@ -325,7 +325,11 @@ table.sum{width:100%;border-collapse:separate;border-spacing:0;min-width:420px;b
 .clear-box .map-sentence{justify-content:center;margin:12px 0 6px}
 .cert-img{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.15);margin:10px 0;animation:popIn .5s var(--pop)}
 
-/* ---------- 선생님 메뉴·편집기 ---------- */
+/* ---------- 탐험대장 메뉴·편집기 ---------- */
+.code-form{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
+.code-form input{width:min(280px,100%);text-align:center;font-size:1.15rem;letter-spacing:2px}
+.code-err{min-height:1.3em;margin:0;color:var(--bad);font-weight:700;font-size:.9rem}
+.code-form input.shake{animation:shake .45s;border-color:var(--bad)}
 .page-head{display:flex;align-items:center;gap:12px;margin:4px 0 16px;flex-wrap:wrap}
 .page-title{font-size:1.35rem;font-weight:800}
 .teacher-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
@@ -451,7 +455,7 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
         <span class="step-prog" aria-label="탐험 단계"><b id="playTitle">1/5</b><span class="sbar"><i id="stepFill"></i></span></span>
         <span class="hchip" title="전체 탐험 시간">⏱ <b id="hudTime">0:00</b></span>
       </div>
-      <button class="icon-btn" data-act="teacher" aria-label="선생님 메뉴" title="선생님 메뉴">☰</button>
+      <button class="icon-btn" data-act="teacher" aria-label="품사 마을 탐험대장 메뉴" title="품사 마을 탐험대장 메뉴">☰</button>
     </div>
   </div>
 </header>
@@ -488,7 +492,7 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
     <p class="note">🗺️ 탐험은 5단계! 단계마다 모든 단어를 맞혀야 다음 단계로 갈 수 있어요.</p>
     <div class="home-cta">
       <button class="btn primary cta is-disabled" id="startBtn" data-act="startExp"><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#fff" stroke="#f3dca6" stroke-width="2"/><path d="M13 5 L16 13 H10Z" fill="#e45b4b"/><path d="M10 13 H16 L13 21Z" fill="#3d6f8e"/><circle cx="13" cy="13" r="1.6" fill="#fff"/></svg> 탐험 시작하기 →</button>
-      <button class="link-btn" data-act="teacher">📖 선생님 메뉴 (글감 만들기)</button>
+      <button class="link-btn" data-act="teacher">🔐 품사 마을 탐험대장 메뉴 (글감 만들기)</button>
     </div>
   </section>
 
@@ -573,11 +577,11 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
     </div>
   </section>
 
-  <!-- 4. 선생님 메뉴 -->
+  <!-- 4. 품사 마을 탐험대장 메뉴 (접속 코드 필요) -->
   <section id="screen-teacher" class="screen">
     <div class="page-head">
       <button class="btn small" data-act="home">← 처음 화면</button>
-      <h2 class="page-title">🧑‍🏫 선생님 메뉴</h2>
+      <h2 class="page-title">🧭 품사 마을 탐험대장 메뉴</h2>
     </div>
     <div class="panel">
       <p class="muted" style="margin-top:0">저장한 글감이 있으면 첫 화면에 <b>‘선생님 글감’</b> 난이도가 생겨요. 탐험할 때 저장한 글감 중에서 최대 5개가 무작위로 나와요.<br>
@@ -595,7 +599,7 @@ code{background:#f4f1ea;border-radius:6px;padding:1px 6px}
   <!-- 5. 교사 글감 입력 -->
   <section id="screen-editor" class="screen">
     <div class="page-head">
-      <button class="btn small" data-act="teacher">← 선생님 메뉴</button>
+      <button class="btn small" data-act="teacher">← 탐험대장 메뉴</button>
       <h2 class="page-title">✏️ 선생님 글감 만들기</h2>
     </div>
     <div class="panel">
@@ -677,7 +681,7 @@ const posVars = p => { const o = POS_MAP[p]; return `--bg:${o.bg};--dk:${o.dk};-
 const isYongeon = p => p === '동사' || p === '형용사';
 const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const STEPS = 5;
-const CORE_POS = ['명사', '대명사', '수사', '동사', '형용사'];   // 선생님 글감: 체언·용언만 문제로
+const CORE_POS = ['명사', '대명사', '수사', '동사', '형용사'];   // 배우는 중: 체언·용언만 문제로
 const OTHER = '기타';                                             // 예전 선생님 글감의 '그 외 품사' (흐리게만 표시)
 const LEARN_MIN = 4;                                              // 배우는 중: 글감마다 체언·용언 카드 최소 개수
 const activePOS = () => exp && exp.core ? POS.filter(p => CORE_POS.includes(p.k)) : POS;
@@ -1105,6 +1109,41 @@ function showQR(){
     <div class="row-btns"><button class="btn" data-act="copyURL">🔗 주소 복사</button><button class="btn primary" data-act="closeModal">닫기</button></div>`);
 }
 
+/* ---------- 탐험대장 메뉴 접속 코드 ----------
+   코드는 원문 대신 해시값으로만 보관해 페이지 소스에 그대로 드러나지 않게 함.
+   (서버가 없는 단일 파일 앱이라 완전한 보안 장치는 아니며, 학생이 실수로 들어가는 것을 막는 용도) */
+const LEADER_CODE_HASH = 'n4cgakewnp';   // 접속 코드의 해시 (코드를 바꾸려면 codeHash('새 코드') 값으로 교체)
+let leaderUnlocked = false;              // 한 번 맞히면 페이지를 새로 열기 전까지 다시 묻지 않음
+function codeHash(s){
+  let a = 0xdeadbeef ^ s.length, b = 0x41c6ce57 ^ s.length;
+  for (const ch of s) { const c = ch.charCodeAt(0); a = Math.imul(a ^ c, 2654435761); b = Math.imul(b ^ c, 1597334677); }
+  a = Math.imul(a ^ (a >>> 16), 2246822507) ^ Math.imul(b ^ (b >>> 13), 3266489909);
+  b = Math.imul(b ^ (b >>> 16), 2246822507) ^ Math.imul(a ^ (a >>> 13), 3266489909);
+  return (4294967296 * (2097151 & b) + (a >>> 0)).toString(36);
+}
+function askLeaderCode(){
+  openModal(`<h2 style="text-align:center">🔐 품사 마을 탐험대장 메뉴</h2>
+    <p class="muted" style="text-align:center;margin:0">글감을 만들고 고치는 메뉴예요. 접속 코드를 입력해 주세요.</p>
+    <form class="code-form" id="codeForm" autocomplete="off">
+      <input type="password" id="codeInput" placeholder="접속 코드" aria-label="접속 코드" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <p class="code-err" id="codeErr" aria-live="polite"></p>
+      <div class="row-btns" style="margin-top:0"><button type="button" class="btn" data-act="closeModal">취소</button><button type="submit" class="btn primary">들어가기</button></div>
+    </form>`);
+  setTimeout(() => { const i = $('#codeInput'); if (i) i.focus(); }, 50);
+}
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'codeForm') return;
+  e.preventDefault();
+  const input = $('#codeInput');
+  if (codeHash(input.value.trim()) === LEADER_CODE_HASH) {
+    leaderUnlocked = true; closeModal(); renderTeacher(); show('teacher');
+    toast('탐험대장 메뉴에 들어왔어요.');
+  } else {
+    $('#codeErr').textContent = '접속 코드가 맞지 않아요. 다시 입력해 주세요.';
+    input.value = ''; input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); input.focus();
+  }
+});
+
 function renderTeacher(){
   const custom = loadCustom();
   $('#customList').innerHTML = custom.length ? custom.map(st => {
@@ -1162,7 +1201,7 @@ function startGame(story){
     ej.pieces.forEach(pc => { const id = 't' + tokens.length; tokens.push({id, s:pc.s, p:pc.p, b:pc.b || ''}); ids.push(id); });
     ejTok.push(ids);
   });
-  // 선생님 글감은 체언·용언만 문제로 내고, 나머지 품사는 카드로 만들지 않음
+  // 배우는 중은 체언·용언만 문제로 내고, 나머지 품사는 카드로 만들지 않음
   const active = exp.core ? POS.filter(p => CORE_POS.includes(p.k)) : POS;
   tokens.forEach(t => { t.quiz = active.some(p => p.k === t.p); });
   const quiz = tokens.filter(t => t.quiz);
@@ -1863,7 +1902,10 @@ function leaveExpedition(){
 function handleAct(act, id, el){
   switch (act) {
     case 'home': if (!leaveExpedition()) return; renderHome(); show('home'); break;
-    case 'teacher': if (!leaveExpedition()) return; renderTeacher(); show('teacher'); break;
+    case 'teacher':
+      if (!leaveExpedition()) return;
+      if (leaderUnlocked) { renderTeacher(); show('teacher'); } else askLeaderCode();
+      break;
     case 'pickLevel':
       chosenLevel = id;
       document.querySelectorAll('.level').forEach(b => b.setAttribute('aria-checked', b.dataset.id === id));
