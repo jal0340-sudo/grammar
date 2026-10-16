@@ -291,7 +291,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .st-txt b{font-size:1.35rem;font-weight:800;color:var(--ink);white-space:nowrap}
 .review{margin:12px 2px 0;font-weight:700;color:var(--ink);font-size:.95rem}
 .badge-card{display:flex;align-items:center;gap:16px;background:linear-gradient(110deg,#fffaf0,#fff 70%)}
-.medal{flex:none;width:76px;height:76px}
+.medal{flex:none;width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(120,80,20,.25));animation:starPop .7s var(--pop) backwards .2s}
 .badge-body small{color:var(--orange);font-weight:800;font-size:.8rem}
 .badge-body b{display:block;font-size:1.2rem;font-weight:800;margin:2px 0}
 .badge-body p{margin:0;color:var(--muted);font-size:.9rem}
@@ -1529,8 +1529,8 @@ function toResult(){
   $('#resultStars').innerHTML = starsHTML(S.stars);
   $('#resultLead').textContent = `「${exp.name}」 ${S.steps}단계 탐험을 모두 마쳤어요. 지금까지의 품사 탐험가로서의 여정을 축하해요!`;
   $('#resultLevel').textContent = `${exp.name} 단계`;
-  const badge = BADGES[S.stars];
-  $('#badgeCard').innerHTML = `${MEDAL_SVG}<div class="badge-body"><small>배지 획득</small><b>${badge[0]}</b><p>${badge[1]}</p></div>`;
+  const badge = badgeFor(S.acc);
+  $('#badgeCard').innerHTML = `<img class="medal" src="${badge.src}" alt="${badge.name} 배지"><div class="badge-body"><small>배지 획득 · 첫 검사 정확도 ${S.acc}%</small><b>${badge.name}</b><p>${badge.desc}</p></div>`;
   const next = !exp.fixed && NEXT_LEVEL[exp.level] && LEVELS.find(l => l.k === NEXT_LEVEL[exp.level]);
   $('#nextBtn').textContent = next ? `🧭 다음 난이도(${next.name}) 도전하기 →` : '🧭 같은 난이도로 새 탐험 →';
   $('#nextBtn').dataset.id = next ? next.k : '';
@@ -1576,11 +1576,17 @@ function statsHTML(r){
     ${cell('⏱', '탐험 시간', fmtTime(r.sec), null)}</div>
     <p class="review">${weak.length ? '🔎 헷갈렸던 품사: ' + weak.map(([p, n]) => `${p} ${n}개`).join(', ') : '🌟 모든 단계를 첫 검사에서 맞혔어요! 완벽해요.'} <span class="muted">(검사 ${r.checks}번)</span></p>`;
 }
-const BADGES = ['', ['새내기 품사 탐험가', '끝까지 포기하지 않고 품사 지도를 완성한 탐험가!'],
-  ['멋진 품사 탐험가', '대부분의 단어를 정확히 찾아 마을로 보낸 멋진 탐험가!'],
-  ['우수 품사 탐험가', '모든 단어를 정확히 맞히며 품사 마을을 탐험한 최고의 탐험가!']];
-const MEDAL_SVG = `<svg class="medal" viewBox="0 0 80 80" aria-hidden="true"><path d="M40 4l7 6 9-2 4 8 9 3-1 9 6 7-6 7 1 9-9 3-4 8-9-2-7 6-7-6-9 2-4-8-9-3 1-9-6-7 6-7-1-9 9-3 4-8 9 2z" fill="#f6c45a" stroke="#e0a43a" stroke-width="2"/>
-  <circle cx="40" cy="40" r="22" fill="#fff8e6" stroke="#d9a441" stroke-width="3"/><path d="M40 24 L45 40 H35Z" fill="#e45b4b"/><path d="M35 40 H45 L40 56Z" fill="#3d6f8e"/><circle cx="40" cy="40" r="3" fill="#fff" stroke="#b58a3a" stroke-width="1.5"/></svg>`;
+// 정확도(첫 검사 기준)에 따른 배지: [최소 정확도, 이름, 설명, 이미지]
+const BADGES = [
+  [100, '전설의 품사 탐험가', '모든 단어를 첫 검사에서 정확히 맞힌 전설 속 탐험가!', 'badges/badge5.png'],
+  [80,  '멋진 품사 탐험가',   '거의 모든 단어를 정확히 찾아 마을로 보낸 멋진 탐험가!', 'badges/badge4.png'],
+  [60,  '야무진 품사 탐험가', '많은 단어의 품사를 야무지게 찾아낸 탐험가!', 'badges/badge3.png'],
+  [40,  '호기심 품사 탐험가', '호기심을 가지고 품사 마을 곳곳을 살펴본 탐험가!', 'badges/badge2.png'],
+  [0,   '새싹 품사 탐험가',   '끝까지 포기하지 않고 품사 지도를 완성한 새싹 탐험가!', 'badges/badge1.png']
+];
+const badgeFor = acc => { const b = BADGES.find(x => acc >= x[0]); return {name:b[1], desc:b[2], src:b[3]}; };
+// 인증서 그림에 쓰려고 미리 불러 둠
+const BADGE_IMG = Object.fromEntries(BADGES.map(b => { const im = new Image(); im.src = b[3]; return [b[3], im]; }));
 
 /* ---------- 인증서 (canvas → 그림 파일, 외부 라이브러리 없음) ---------- */
 // 인증서 배지 안에 그릴 흰색 품사 아이콘 (24×24 기준 Path2D)
@@ -1595,7 +1601,7 @@ const CERT_ICON = {
   '조사':  {d:'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7 M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7'},
   '감탄사':{d:'M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8'}
 };
-function drawCert(name){
+function drawCert(name, withBadge = true){
   const r = exp.summary, W = 1600, H = 1220, F = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif';
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d');
@@ -1672,11 +1678,21 @@ function drawCert(name){
   x.fillStyle = INK; x.font = `900 84px ${F}`; x.fillText('품사 탐험가 인증서', W / 2, 390);
   const U = 24;   // 제목을 줄인 만큼 아래 내용을 모두 위로 올려 맨 아래 탐험대장 밑에 여백을 둠
   [-1, 0, 1].forEach((d, i) => { starPath(W / 2 + d * 62, 458 - U, 26); x.fillStyle = i < r.stars ? '#e3a83a' : '#e6ddc8'; x.fill(); });
-  x.fillStyle = INK; x.font = `800 58px ${F}`; x.fillText(name, W / 2, 544 - U);
-  const nw = Math.max(220, x.measureText(name).width + 70);
-  x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.moveTo(W / 2 - nw / 2, 566 - U); x.lineTo(W / 2 + nw / 2, 566 - U); x.stroke();
+  // 이름 앞에 정확도 배지 그림 (그림이 아직 안 불러졌거나 쓸 수 없으면 이름만)
+  const badge = badgeFor(r.acc), bimg = BADGE_IMG[badge.src];
+  const hasImg = withBadge && bimg && bimg.complete && bimg.naturalWidth > 0;
+  x.font = `800 58px ${F}`;
+  const tw = x.measureText(name).width, bh = 92, bw = hasImg ? bh * bimg.naturalWidth / bimg.naturalHeight : 0, gapB = hasImg ? 18 : 0;
+  const left = W / 2 - (bw + gapB + tw) / 2, ny = 544 - U;
+  if (hasImg) {
+    x.save(); x.shadowColor = 'rgba(120,80,20,.3)'; x.shadowBlur = 10; x.shadowOffsetY = 4;
+    x.drawImage(bimg, left, ny - 20 - bh / 2, bw, bh); x.restore();
+  }
+  x.fillStyle = INK; x.textAlign = 'left'; x.fillText(name, left + bw + gapB, ny); x.textAlign = 'center';
+  const nx = left + bw + gapB + tw / 2, nw = Math.max(200, tw + 60);
+  x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.moveTo(nx - nw / 2, 566 - U); x.lineTo(nx + nw / 2, 566 - U); x.stroke();
   x.fillStyle = '#2f3a36'; x.font = `500 36px ${F}`;
-  const body = "위 사람은 이야기 속에 숨겨진 품사를 완벽히 탐색하여 '품사 마을 지도'를 완성하였으므로 '우수 품사 탐험가'로 인정합니다.";
+  const body = `위 사람은 이야기 속에 숨겨진 품사를 탐색하여 '품사 마을 지도'를 완성하였으므로 '${badge.name}'로 인정합니다.`;
   wrapLines(x, body, 1140).forEach((ln, i) => x.fillText(ln, W / 2, 642 - U + i * 52));
 
   // 6) 탐험 정보 줄 (양쪽 월계수)
@@ -1741,7 +1757,8 @@ function drawCert(name){
   x.fillStyle = '#e8574a'; x.beginPath(); x.moveTo(0, -58); x.lineTo(12, 0); x.lineTo(-12, 0); x.closePath(); x.fill();
   x.fillStyle = '#f4eedb'; x.beginPath(); x.moveTo(0, 58); x.lineTo(12, 0); x.lineTo(-12, 0); x.closePath(); x.fill();
   x.restore(); x.beginPath(); x.arc(kx, ky, 7, 0, Math.PI * 2); x.fillStyle = GOLD; x.fill();
-  return c.toDataURL('image/png');
+  // index.html을 파일(file://)로 직접 열면 배지 그림 때문에 저장이 막힐 수 있어, 그때는 배지 없이 다시 그림
+  try { return c.toDataURL('image/png'); } catch (e) { return withBadge ? drawCert(name, false) : ''; }
 }
 /* ---------- 품사 요약 정리표 그림 (canvas → 그림 파일) ---------- */
 function roundRectPath(x, rx, ry, w, h, r){
